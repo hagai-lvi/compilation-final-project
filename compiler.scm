@@ -105,7 +105,7 @@
 (define *void-object* (void))
 
 
-(define (^reg-lambda-args-list? list)
+(define (reg-lambda-args-list? list)
 	(if (not (list? list))
 	    #f
 	    (andmap ^var? list)))
@@ -209,7 +209,7 @@
 			(lambda (exp-list body)
 				(parse (expand-letrec `(letrec ,exp-list ,@body) ))))
 		(pattern-rule 	;reg-lambda
-			`(lambda ,(? 'arg-list ^reg-lambda-args-list?) . ,(? 'body))
+			`(lambda ,(? 'arg-list reg-lambda-args-list?) . ,(? 'body))
 			(lambda (arg-list body) `(lambda-simple ,arg-list ,(parse `(begin ,@body)))))
 	   (pattern-rule
 			`(define ,(? 'var ^var?) ,(? 'ex) )
