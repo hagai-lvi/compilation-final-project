@@ -375,16 +375,6 @@
 	)
 
 
-; (define (treverse-pe-a pe bound-list)
-; 	(letrec ((treverse-pe (trace-lambda what(pe bound-list)
-; 	(cond 	((null? pe) pe) 
-; 			((and (pair? pe)(eq? (car pe) 'lambda-simple))(treverse-pe (cdr pe)(add-list (cadr pe) bound-list)))
-; 			((and (pair? pe)(eq? (car pe) 'var))((set-car! pe 'haha)pe))
-
-; 		(else (cons (treverse-pe (car pe) bound-list) (treverse-pe (cdr pe) bound-list))))))
-	
-; 	(begin (treverse-pe pe bound-list)
-; 		pe)))
 	(define (pe->lex-pe pe)
 		(treverse pe '(())))
 
