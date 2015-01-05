@@ -1,9 +1,6 @@
 (load "compiler.scm")
 (load "folder-utils.scm")
 
-
-
-(define (id x)x)
 (define quote? 
 	(lambda (e)
 	(or (eq? e 'quote)(and (pair? e)(eq? (car e) 'quote)))))
@@ -343,10 +340,6 @@
 							(else (f (cdr list) (lambda (rest) (succ `(,(car list) ,@rest)))))))))
 		(f list (lambda(x) x))))
 
-(define (part pred lst)
-	(cons 	(filter pred lst)
-			(filter (lambda (x) (not (pred x)) ) lst)))
-
 (define (plus->mult lst)
 	(letrec ((f (lambda (initial-lst rest-lst)
 					(cond 	((null? rest-lst) initial-lst)
@@ -356,11 +349,6 @@
 									(f (cons (car rest-lst) initial-lst) filterd)
 									(f `((* ,count-sym ,(car rest-lst)) ,@initial-lst ) filterd ))))))))
 	(f `() lst)))
-
-(define (count initial lst symbol)
-	(cond (	(null? lst) initial)
-			((eqv? symbol (car lst)) (count (+ initial 1) (cdr lst) symbol))
-			(else (count initial (cdr lst) symbol))))
 
 (define (value? x)
 	(or	(number? x)

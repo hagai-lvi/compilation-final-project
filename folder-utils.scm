@@ -1,5 +1,7 @@
 (load "compiler.scm")
 
+(define (id x)x)
+
 (define cons-expression?
 	(lambda (exp)
 		(and	(list? exp)
@@ -23,3 +25,12 @@
 (define list-of-strings?
 	(lambda (x)
 		(and (list? x)(andmap string? x))))
+
+(define (count initial lst symbol)
+	(cond (	(null? lst) initial)
+			((eqv? symbol (car lst)) (count (+ initial 1) (cdr lst) symbol))
+			(else (count initial (cdr lst) symbol))))
+
+(define (part pred lst)
+	(cons 	(filter pred lst)
+			(filter (lambda (x) (not (pred x)) ) lst)))
