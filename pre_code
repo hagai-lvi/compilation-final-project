@@ -1,0 +1,22 @@
+// This code is to be appended before the final cisc file created by our compiler
+#include <stdio.h>
+#include <stdlib.h>
+
+/* change to 1 for debug info to be printed: */
+#define DO_SHOW 0
+
+#include "cisc.h"
+
+int main()
+{
+  START_MACHINE;
+
+  JUMP(CONTINUE);
+
+#include "char.lib"
+#include "io.lib"
+#include "math.lib"
+#include "string.lib"
+#include "system.lib"
+
+ CONTINUE:
