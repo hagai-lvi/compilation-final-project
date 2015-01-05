@@ -104,10 +104,6 @@
 
 (define *void-object* (void))
 
-(define (^opt-lambda-args-list? list)
-	(if (not (list? list))
-	    #f
-	    (andmap ^var? list)))
 
 (define (^reg-lambda-args-list? list)
 	(if (not (list? list))
