@@ -343,12 +343,6 @@
 							(else (f (cdr list) (lambda (rest) (succ `(,(car list) ,@rest)))))))))
 		(f list (lambda(x) x))))
 
-(define (quotify l)
-	(if (and (list? l) (> (length l) 1))
-		`(quote (,@l))
-		l
-		))
-
 (define (part pred lst)
 	(cons 	(filter pred lst)
 			(filter (lambda (x) (not (pred x)) ) lst)))
@@ -378,21 +372,6 @@
 		(and (pair? x) (value? (car x)) (value? (cdr x)) )
 		))
 
-(define (id-variadic . lst) lst)
-
-(define append-strings
-	(lambda (lst)
-		(let ((appended-lst (map	(lambda (x)
-					(if (list-of-strings? x)
-						(apply string-append x)
-						x))
-						lst)))
-		`(string-append ,@appended-lst)
-		)))
-
-(define list-of-strings?
-	(lambda (x)
-		(and (list? x)(andmap string? x))))
 
 ;group elements in the list according to pred
 ; example (split-list-by-pred string? `(a b "c" "d" 1 2))
