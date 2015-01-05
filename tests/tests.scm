@@ -46,4 +46,9 @@
 ;(run-tests foo test-one)
 
 
-(exit (run-test-suites foo))
+
+(exit (+ (run-test-suites
+							parse-tests
+							compiler-tests
+							folder-tests
+						)))
