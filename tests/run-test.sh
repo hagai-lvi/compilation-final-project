@@ -4,7 +4,7 @@ echo
 echo ----------------------------------------------------------------------------------------------------------------
 echo 
 ls tests
-petite -q tests/tests.scm --libdirs "rough-draft-master/src/"
+petite -q tests/tests.scm --libdirs "tests/rough-draft-master/src/"
 
 echo
 echo ----------------------------------------------------------------------------------------------------------------
