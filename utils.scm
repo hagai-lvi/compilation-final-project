@@ -29,3 +29,25 @@
 	(if (and (list? lst) (> (length lst) 0))
 	    `(begin ,exp1 ,@lst)
 	    exp1))
+
+(define quote?
+  (lambda (tag)
+    (lambda (e)
+      (and (pair? e)
+	   (eq? (car e) tag)
+	   (pair? (cdr e))
+	   (null? (cddr e))))))
+
+(define quasiquote? 
+	(lambda (e)
+ (eq? e 'quasiquote)))
+
+(define unquote? (quote? 'unquote))
+(define unquote-splicing? (quote? 'unquote-splicing))
+
+(define (improper-list? x)
+	(and 	(pair? x)
+			(not (null? (cdr (last-pair x))))))
+
+(define (get-opt-lambda-mandatory-args x) (car x))
+(define (get-opt-lambda-optional-args x) (cdr x))
