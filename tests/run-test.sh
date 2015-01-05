@@ -2,7 +2,7 @@ set -e
 echo
 echo ----------------------------------------------------------------------------------------------------------------
 echo 
-ls
+ls tests
 petite -q tests/tests.scm --libdirs "rough-draft-master/src/"
 
 echo

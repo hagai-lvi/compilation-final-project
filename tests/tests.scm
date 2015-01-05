@@ -1,6 +1,6 @@
 ;;; Copyright (c) 2012 Andrew W. Keep
 ;;; See the accompanying file Copyright for detatils
-(load "../compiler.scm")
+(load "compiler.scm")
 (import
 	(rnrs)
 	(rough-draft unit-test)
