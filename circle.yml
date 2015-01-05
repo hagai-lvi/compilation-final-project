@@ -1,0 +1,7 @@
+machine:
+  pre:
+    - sh compilation-final-project/tests/install-petite.sh
+
+test:
+  override:
+    - sh tests/run-test.sh
