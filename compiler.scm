@@ -85,7 +85,7 @@
 			(string? x)
 			))
 
-(define (^var? x)
+(define (var? x)
 (and (symbol? x)(let ((p (member x *reserved-words*)))
 	(if p #f #t))))
 
@@ -100,7 +100,7 @@
 (define (reg-lambda-args-list? list)
 	(if (not (list? list))
 	    #f
-	    (andmap ^var? list)))
+	    (andmap var? list)))
 
 
 ;splits the improper list to a pair of proper list and single argument: (opt-lambda-args-list '(a b c . d)) returns '((a b c) . d)
@@ -110,17 +110,10 @@
 	    (opt-lambda-args-list (cdr args-list) (lambda (partial-args-list) 
 	    (succ (cons (cons (car args-list) (car partial-args-list)) (cdr partial-args-list)))))))
 
-(define (improper-list? x) ;TODO add tests
-	(and 	(pair? x)
-			(not (null? (cdr (last-pair x))))))
 
-(define (get-opt-lambda-mandatory-args x) (car x))
-(define (get-opt-lambda-optional-args x) (cdr x))
-
-
-(define (let-vars-expressions-list? list) 	;TODO think what are the criterions for a let-vars-expressions-list
+(define (let-vars-expressions-list? list)
 	(andmap (lambda (x)vector for each sheme
-				(and (list? x) (^var? (car x))))
+				(and (list? x) (var? (car x))))
 			list))
 
 (define (get-lambda-variables vars)
@@ -149,20 +142,6 @@
 	  ((or (null? e) (symbol? e)) `',e)
 	  (else e))))
 
-(define ^quote?
-  (lambda (tag)
-    (lambda (e)
-      (and (pair? e)
-	   (eq? (car e) tag)
-	   (pair? (cdr e))
-	   (null? (cddr e))))))
-
-(define quasiquote? 
-	(lambda (e)
- (eq? e 'quasiquote)))
-
-(define unquote? (^quote? 'unquote))
-(define unquote-splicing? (^quote? 'unquote-splicing))
 
 (define s 'unquote)
 (define parse
@@ -175,7 +154,7 @@
 			`(quote ,(? 'c))
 			(lambda (c) `(const ,c)))
 		(pattern-rule
-			`,(? 'v ^var?)
+			`,(? 'v var?)
 			(lambda (v) `(var ,v)))
 		(pattern-rule 	;if3
 			`(if ,(? 'test) ,(? 'dit))
@@ -186,7 +165,7 @@
 			(lambda (test dit dif)
 				`(if3 ,(parse test) ,(parse dit) ,(parse dif))))
 		(pattern-rule 	;lambda-variadic
-			`(lambda ,(? `var ^var?) . ,(? `body))	;TODO need to check if the body is legal (also in opt and regular lambdas)
+			`(lambda ,(? `var var?) . ,(? `body))	;TODO need to check if the body is legal (also in opt and regular lambdas)
 			(lambda (args body)
 				`(lambda-variadic ,args ,(parse `(begin ,@body)) )))
 		(pattern-rule 	;opt-lambda
@@ -204,7 +183,7 @@
 			`(lambda ,(? 'arg-list reg-lambda-args-list?) . ,(? 'body))
 			(lambda (arg-list body) `(lambda-simple ,arg-list ,(parse `(begin ,@body)))))
 	   (pattern-rule
-			`(define ,(? 'var ^var?) ,(? 'ex) )
+			`(define ,(? 'var var?) ,(? 'ex) )
 			(lambda (vari ex)
 				`(define (var ,vari) ,(parse ex))))
 	  	(pattern-rule
@@ -267,7 +246,7 @@
 				(let ((parsed-exps (map parse exps)))
 					`(or ,parsed-exps))))
 		(pattern-rule
-			`(,(? 'va  ^var?) . ,(? 'varb list?))
+			`(,(? 'va  var?) . ,(? 'varb list?))
 			(lambda (vari variables)
 				`(applic (var ,vari) ,(map (lambda (s)(parse s)) variables ))))
 		(pattern-rule
@@ -340,16 +319,6 @@
 
 (define with (lambda (s f)
 					(apply f s)))
-
-
-(define (beginify exp1 . lst)
-	(if (and (list? lst) (> (length lst) 0))
-	    `(begin ,exp1 ,@lst)
-	    exp1))
-
-
-(define (add-list new-list bound-list)
-	(cons new-list bound-list))
 
 
 	(define (pe->lex-pe pe)

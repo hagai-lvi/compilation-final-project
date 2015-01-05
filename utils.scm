@@ -23,3 +23,9 @@
 
 (define (add-list new-list bound-list)
 	(cons new-list bound-list))
+
+
+(define (beginify exp1 . lst)
+	(if (and (list? lst) (> (length lst) 0))
+	    `(begin ,exp1 ,@lst)
+	    exp1))
