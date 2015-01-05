@@ -1,14 +1,6 @@
 (load "pattern-matcher.scm")
+(load "utils.scm")
 (print-gensym #f)
-(define (id x) x)
-;;;;;;;;;;;
-;; const ;;
-;;;;;;;;;;;
-
-
-(define tagged-with
-	(lambda (tag exp)
-		(eq? tag (car exp))))
 
 (define annotate-tc
 	(lambda (pe)
