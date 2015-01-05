@@ -349,9 +349,7 @@
 
 
 (define (add-list new-list bound-list)
-
-	(cons new-list bound-list)
-	)
+	(cons new-list bound-list))
 
 
 	(define (pe->lex-pe pe)

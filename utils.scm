@@ -19,3 +19,7 @@
 					    (f (cdr list) (lambda (rest last)
 					    					(succ (cons (car list) rest) last)))))))
 	(f list (lambda (x y) (cons x y)))))
+
+
+(define (add-list new-list bound-list)
+	(cons new-list bound-list))
