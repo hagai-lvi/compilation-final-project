@@ -78,14 +78,14 @@
 							(else (f var-name (cdr env) (+ 1 counter)))))))
 		(f var-name env 0))))
 
-(define (^const? x)
+(define (const? x)
 	(or 	(boolean? x)
 			(char? x)
 			(number? x)
 			(string? x)
 			))
 
-(define (^var? x)
+(define (var? x)
 (and (symbol? x)(let ((p (member x *reserved-words*)))
 	(if p #f #t))))
 
@@ -100,7 +100,7 @@
 (define (reg-lambda-args-list? list)
 	(if (not (list? list))
 	    #f
-	    (andmap ^var? list)))
+	    (andmap var? list)))
 
 
 ;splits the improper list to a pair of proper list and single argument: (opt-lambda-args-list '(a b c . d)) returns '((a b c) . d)
@@ -120,7 +120,7 @@
 
 (define (let-vars-expressions-list? list) 	;TODO think what are the criterions for a let-vars-expressions-list
 	(andmap (lambda (x)vector for each sheme
-				(and (list? x) (^var? (car x))))
+				(and (list? x) (var? (car x))))
 			list))
 
 (define (get-lambda-variables vars)
@@ -169,13 +169,13 @@
 	(let ((run
 		(compose-patterns
 		(pattern-rule
-			(? 'c ^const?)
+			(? 'c const?)
 			(lambda (c) `(const ,c)))
 		(pattern-rule
 			`(quote ,(? 'c))
 			(lambda (c) `(const ,c)))
 		(pattern-rule
-			`,(? 'v ^var?)
+			`,(? 'v var?)
 			(lambda (v) `(var ,v)))
 		(pattern-rule 	;if3
 			`(if ,(? 'test) ,(? 'dit))
@@ -186,7 +186,7 @@
 			(lambda (test dit dif)
 				`(if3 ,(parse test) ,(parse dit) ,(parse dif))))
 		(pattern-rule 	;lambda-variadic
-			`(lambda ,(? `var ^var?) . ,(? `body))	;TODO need to check if the body is legal (also in opt and regular lambdas)
+			`(lambda ,(? `var var?) . ,(? `body))	;TODO need to check if the body is legal (also in opt and regular lambdas)
 			(lambda (args body)
 				`(lambda-variadic ,args ,(parse `(begin ,@body)) )))
 		(pattern-rule 	;opt-lambda
@@ -204,7 +204,7 @@
 			`(lambda ,(? 'arg-list reg-lambda-args-list?) . ,(? 'body))
 			(lambda (arg-list body) `(lambda-simple ,arg-list ,(parse `(begin ,@body)))))
 	   (pattern-rule
-			`(define ,(? 'var ^var?) ,(? 'ex) )
+			`(define ,(? 'var var?) ,(? 'ex) )
 			(lambda (vari ex)
 				`(define (var ,vari) ,(parse ex))))
 	  	(pattern-rule
@@ -267,7 +267,7 @@
 				(let ((parsed-exps (map parse exps)))
 					`(or ,parsed-exps))))
 		(pattern-rule
-			`(,(? 'va  ^var?) . ,(? 'varb list?))
+			`(,(? 'va  var?) . ,(? 'varb list?))
 			(lambda (vari variables)
 				`(applic (var ,vari) ,(map (lambda (s)(parse s)) variables ))))
 		(pattern-rule
@@ -369,7 +369,7 @@
 	(define (treverse pe bound-list)
 		(cond 
 			((null? pe) pe)
-			((or (^const? pe)(symbol? pe))pe)
+			((or (const? pe)(symbol? pe))pe)
 			((and (pair? pe)(eq? (car pe) 'lambda-simple))
 				(cons 
 					(treverse (car pe) (add-list (cadr pe) bound-list))
