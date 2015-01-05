@@ -1,4 +1,6 @@
 (load "compiler.scm")
+(load "folder-utils.scm")
+
 
 
 (define (id x)x)
@@ -417,13 +419,3 @@
 					(cons succ-lst rest))
 				(lambda (x rest);fail
 					(cons `() (cons x rest)))))))
-
-(define cons-expression?
-	(lambda (exp)
-		(and	(list? exp)
-				(equal? (car exp) 'cons))))
-
-(define empty-list?
-	(lambda (exp)
-		(or	(equal? exp '(list) )
-			(equal? exp ''() ))))

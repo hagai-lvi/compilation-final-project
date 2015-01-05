@@ -1,5 +1,5 @@
 (load "pattern-matcher.scm")
-(load "utils.scm")
+(load "compiler-utils.scm")
 (print-gensym #f)
 
 (define annotate-tc
