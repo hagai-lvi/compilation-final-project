@@ -375,7 +375,7 @@
 ;   				(display element p))
 ;   			(write-whole-file (p (cdr l)))))))
 
-(define read-whole-file
+(define read-whole-file-by-char
   (lambda (p)
    (letrec (
    	(f (lambda (x)
@@ -384,27 +384,38 @@
    		(cons x (f (read-char p)))))))
 	(f (read-char p)))))
 
+
+(define read-whole-file-by-token
+  (lambda (p)
+   (letrec (
+   	(f (lambda (x)
+   		(if (eof-object? x)
+   			'()
+   		(cons x (f (read p)))))))
+	(f (read p)))))
+
+
 (define (create-imports-macros-begining)
-(call-with-input-file "pre_code" read-whole-file)) 
+(call-with-input-file "pre_code" read-whole-file-by-char)) 
 
 
 (define (create-imports-macros-end)
-(call-with-input-file "post_code" read-whole-file)) 
+(call-with-input-file "post_code" read-whole-file-by-char)) 
 
-
+(define (code-gen-text input-text)
+(display input-text))
 
 (define (compile-scheme-file input output)
 	(let* (
 			(output-file (open-input-output-file output))
 			(input-file  (open-input-file input))
-			(input-text (read input-file))
+			(input-text (read-whole-file-by-token input-file))
 			
 		)
 		(begin 
 			(display (create-imports-macros-begining)  output-file)
-			;(code-gen-text input-text )
+			(code-gen-text  input-text )
 			(display  (create-imports-macros-end)  output-file)
-			(close-output-port output-file)
 			(close-output-port output-file)
 		)))
 
