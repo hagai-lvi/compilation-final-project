@@ -1,6 +1,19 @@
+Not-assigned:
+handle Fvars
+implement more predicates
+
+
+______________________________________________________________
 Ilya:
 code-gen-applic
-code-gen-var
+code-gen-var (Bvar and Pvar)
+predicates:
+	boolean?
+	vector?
+	string?
+	number?
+	char?
+
 
 ______________________________________________________________
 Hagai:
