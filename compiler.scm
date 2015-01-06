@@ -375,8 +375,12 @@
 ;   				(display element p))
 ;   			(write-whole-file (p (cdr l)))))))
 
+
+;used for reading c macros
+(define nl (list->string (list #\newline)))
+
 (define read-whole-file-by-char
-  (lambda (p)
+  (trace-lambda chars(p)
    (letrec (
    	(f (lambda (x)
    		(if (eof-object? x)
@@ -384,7 +388,7 @@
    		(cons x (f (read-char p)))))))
 	(f (read-char p)))))
 
-
+;used for reading scheme input
 (define read-whole-file-by-token
   (lambda (p)
    (letrec (
@@ -396,14 +400,16 @@
 
 
 (define (create-imports-macros-begining)
-(call-with-input-file "pre_code" read-whole-file-by-char)) 
+(call-with-input-file "pre_code.c" read-whole-file-by-char)) 
 
 
 (define (create-imports-macros-end)
-(call-with-input-file "post_code" read-whole-file-by-char)) 
+(call-with-input-file "post_code.c" read-whole-file-by-char)) 
 
-(define (code-gen-text input-text)
-(display input-text))
+(define (code-gen-text input-text output-file)
+(display (string-append "MOV(R0,2);" nl "SHOW(\"the number is \",R0);" nl) output-file))
+
+
 
 (define (compile-scheme-file input output)
 	(let* (
@@ -414,7 +420,7 @@
 		)
 		(begin 
 			(display (create-imports-macros-begining)  output-file)
-			(code-gen-text  input-text )
+			(code-gen-text  input-text output-file )
 			(display  (create-imports-macros-end)  output-file)
 			(close-output-port output-file)
 		)))
