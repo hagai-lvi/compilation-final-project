@@ -26,7 +26,7 @@
 								((tagged-with `applic pe)
 									(if	is-tp
 										(with pe (lambda (name operator params)
-												`(applic-tp ,(atp operator #f) ,(map (lambda (exp)
+												`(tc-applic ,(atp operator #f) ,(map (lambda (exp)
 																					(atp exp #f)) params))))
 										(with pe (lambda (name operator params)
 												`(applic ,(atp operator #f) ,(map (lambda (exp)
@@ -344,3 +344,28 @@
 			
 			((and (pair? pe)(eq? (car pe) 'var)) (get-var-annotation (cadr pe) bound-list))
 			(else (cons (treverse (car pe) bound-list)(treverse (cdr pe) bound-list)))))
+(define test
+  (lambda (e)
+    (annotate-tc
+      (pe->lex-pe
+	(parse e)))))
+
+
+;**********************************;;;;;;;;;;;;;;;;;;;;;;;;
+((close-output-port output-file))
+
+
+(define (compile-scheme-file input output)
+	(let* 
+		(
+			(exp (test e))
+			(output-file (open-output-file output))
+			(input-file  (open-input-file input))
+			(input-text (read input-file))
+			(write (create-imports-macros) output-file))
+		)
+		(begin 
+		(code-gen-text input-text )
+		(close-output-port output-file)
+		(close-output-port output-file)
+		))
