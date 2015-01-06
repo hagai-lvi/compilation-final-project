@@ -1,0 +1,11 @@
+Ilya:
+code-gen-applic
+code-gen-var
+
+______________________________________________________________
+Hagai:
+code-gen-simple-lambda (will be modified later to variadic and opt)
+code-gen-plus
+code-gen-minus
+code-gen-mult
+code-gen-div
