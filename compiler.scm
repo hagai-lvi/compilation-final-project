@@ -352,6 +352,52 @@
 
 
 ;**********************************;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define ^^label
+	(lambda (name)
+		(let ((n 0))
+			(lambda ()
+				(set! n (+ n 1))
+			(string-append name (number->string n))))))
+
+
+(define ^label-if3else (^^label "Lif3else"))
+
+(define ^label-if3exit (^^label "Lif3exit"))
+
+(define code-gen-if3 (lambda (e)
+		(with e	(lambda (if3 test do-if-true do-if-false)
+					(let ((code-test (code-gen test))
+						(code-dit (code-gen do-if-true))
+						(code-dif (code-gen do-if-false))
+						(label-else (^label-if3else))
+						(label-exit (^label-if3exit)))
+					(string-append
+						code-test nl ; when run, the result of the test will be in R0
+						"CMP(R0, SOB_BOOLEAN_FALSE);" nl
+						"JUMP_EQ(" label-else ");" nl
+						code-dit nl
+						"JUMP(" label-exit ");" nl
+						label-else ":" nl
+						code-dif nl
+						label-exit ":"))))))
+
+(define (cod-gen-const e)
+	(with e (lambda(const exp)
+	(cond ((number? exp)(string-append "MOV(R0,IMM(" (number->string exp) "));" nl))
+		  ((string? exp)(string-append "MOV(R0,IMM(\""  exp "\"));" nl))
+		  ((char? exp)(string-append "MOV(R0,IMM('"  exp  "''));" nl))
+		  ((boolean? exp)(if (equal? #f exp)
+						(string-append "MOV(R0,IMM(SOB_BOOLEAN_FALSE));" nl)
+		  				(string-append "MOV(R0,IMM(SOB_BOOLEAN_TRUE));" nl)))
+		  (else exp))	
+	)))
+
+(define (cod-gen e)
+	(cond ((tagged-with 'const e)(cod-gen-const e))
+	(else e)))
+
+
 (define call-with-input-file
   (lambda (filename proc)
     (let ((p (open-input-file filename)))
@@ -380,7 +426,7 @@
 (define nl (list->string (list #\newline)))
 
 (define read-whole-file-by-char
-  (trace-lambda chars(p)
+  (lambda (p)
    (letrec (
    	(f (lambda (x)
    		(if (eof-object? x)
@@ -407,15 +453,15 @@
 (call-with-input-file "post_code.c" read-whole-file-by-char)) 
 
 (define (code-gen-text input-text output-file)
-(display (string-append "MOV(R0,2);" nl "SHOW(\"the number is \",R0);" nl) output-file))
-
+;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
+(display (cod-gen input-text) output-file))
 
 
 (define (compile-scheme-file input output)
 	(let* (
 			(output-file (open-input-output-file output))
 			(input-file  (open-input-file input))
-			(input-text (read-whole-file-by-token input-file))
+			(input-text (test (car (read-whole-file-by-token input-file))))
 			
 		)
 		(begin 
