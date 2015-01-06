@@ -357,8 +357,23 @@
     (let ((p (open-input-file filename)))
       (let ((v (proc p)))
         (close-input-port p)
-         (list->string v)))))
+				(list->string v)))))
 
+;(define call-with-output-file
+;  (lambda (port proc list-to-print)
+;      (proc port list-to-print)))
+
+
+;(define write-whole-file
+;  (lambda (p l)
+;  	(let* ((element (if (null? l)l(car l))))
+;  		(if null? element)
+;  			(newline p)
+;   		 (begin 
+;   		 	(if	(equal? element #\newline)
+;   				(newline p)
+;   				(display element p))
+;   			(write-whole-file (p (cdr l)))))))
 
 (define read-whole-file
   (lambda (p)
@@ -372,18 +387,23 @@
 (define (create-imports-macros-begining)
 (call-with-input-file "pre_code" read-whole-file)) 
 
+
+(define (create-imports-macros-end)
+(call-with-input-file "post_code" read-whole-file)) 
+
+
+
 (define (compile-scheme-file input output)
 	(let* (
-			(exp (test e))
-			(output-file (open-output-file output))
+			(output-file (open-input-output-file output))
 			(input-file  (open-input-file input))
 			(input-text (read input-file))
 			
 		)
 		(begin 
-			(write (create-imports-macros-begining) output-file)
-			(code-gen-text input-text )
-			(write (create-imports-macros-end) output-file)
+			(display (create-imports-macros-begining)  output-file)
+			;(code-gen-text input-text )
+			(display  (create-imports-macros-end)  output-file)
 			(close-output-port output-file)
 			(close-output-port output-file)
 		)))
