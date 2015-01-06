@@ -352,20 +352,40 @@
 
 
 ;**********************************;;;;;;;;;;;;;;;;;;;;;;;;
-((close-output-port output-file))
+(define call-with-input-file
+  (lambda (filename proc)
+    (let ((p (open-input-file filename)))
+      (let ((v (proc p)))
+        (close-input-port p)
+         (list->string v)))))
 
+
+(define read-whole-file
+  (lambda (p)
+   (letrec (
+   	(f (lambda (x)
+   		(if (eof-object? x)
+   			'()
+   		(cons x (f (read-char p)))))))
+	(f (read-char p)))))
+
+(define (create-imports-macros-begining)
+(call-with-input-file "pre_code" read-whole-file)) 
 
 (define (compile-scheme-file input output)
-	(let* 
-		(
+	(let* (
 			(exp (test e))
 			(output-file (open-output-file output))
 			(input-file  (open-input-file input))
 			(input-text (read input-file))
-			(write (create-imports-macros) output-file))
+			
 		)
 		(begin 
-		(code-gen-text input-text )
-		(close-output-port output-file)
-		(close-output-port output-file)
-		))
+			(write (create-imports-macros-begining) output-file)
+			(code-gen-text input-text )
+			(write (create-imports-macros-end) output-file)
+			(close-output-port output-file)
+			(close-output-port output-file)
+		)))
+
+
