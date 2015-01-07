@@ -8,7 +8,7 @@
   #include "arch/scheme.lib"
 
 //make_pair
- MAKE_PAIR:
+ CONS:
   PUSH(FP);
   MOV(FP, SP);
   PUSH(IMM(3));
