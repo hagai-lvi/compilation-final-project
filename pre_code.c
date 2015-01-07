@@ -3,9 +3,9 @@
 
 /* change to 1 for debug info to be printed: */
 #define DO_SHOW 1
-#define SCMARG(n) (FPARG(n + 2))
-#define SCMENV (FPARG(0))
-#define SCMNARGS (FPARGS(1))
+#define SCMARG(n) FPARG(n + 2)
+#define SCMENV FPARG(0)
+#define SCMNARGS FPARGS(1)
 #define SOB_BOOLEAN_FALSE 0
 #define SOB_BOOLEAN_TRUE 1
 
@@ -18,12 +18,152 @@ int main()
 {
   START_MACHINE;
 
-  JUMP(CONTINUE);
-
 #include "arch/char.lib"
 #include "arch/io.lib"
 #include "arch/math.lib"
 #include "arch/string.lib"
 #include "arch/system.lib"
+#include "arch/scheme.lib"
+
+//make_pair
+ MAKE_PAIR:
+  PUSH(FP);
+  MOV(FP, SP);
+  PUSH(IMM(3));
+  CALL(MALLOC);
+  DROP(IMM(1));
+  MOV(IND(R0), T_PAIR);
+  MOV(INDD(R0, 1), SCMARG(0));
+  MOV(INDD(R0, 2), SCMARG(1));
+  POP(FP);
+  RETURN;
+
+CAR:
+  
+  PUSH(FP);
+  MOV(FP, SP);
+  CMP(SCMNARGS,IMM(1));
+  JUMP_NE(L_NOT_VALID_ARGUMENTS);
+  MOV(R1,SCMARG(0));
+  CMP(IND(R1), IMM(T_PAIR));
+  JUMP_NE(L_NOT_PAIR);
+  MOV(R0,INDD(R1,IMM(1)));
+  POP(FP);
+  RETURN;
+
+CDR:
+  PUSH(FP);
+  MOV(FP, SP);
+  CMP(SCMNARGS,IMM(1));
+  JUMP_NE(L_NOT_VALID_ARGUMENTS);
+  MOV(R1,SCMARG(0));
+  CMP(IND(R1), IMM(T_PAIR));
+  JUMP_NE(L_NOT_PAIR);
+  MOV(R0,INDD(R1,IMM(2)));
+  POP(FP);
+  RETURN;
+
+ IS_BOOL:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_BOOL));
+  JUMP_EQ(L_IS_SOB_BOOL_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(L_IS_SOB_BOOL_EXIT);
+ L_IS_SOB_BOOL_TRUE:
+  MOV(R0, IMM(1));
+ L_IS_SOB_BOOL_EXIT:
+  POP(FP);
+  RETURN;
+
+IS_NUNBER:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_NUMBER));
+  JUMP_EQ(L_IS_SOB_NUMBER_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(L_IS_SOB_NUMBER_EXIT);
+ L_IS_SOB_NUMBER_TRUE:
+  MOV(R0, IMM(1));
+ L_IS_SOB_NUMBER_EXIT:
+  POP(FP);
+  RETURN;
+
+IS_STRING:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_STRING));
+  JUMP_EQ(L_IS_SOB_STRING_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(L_IS_SOB_STRING_EXIT);
+ L_IS_SOB_STRING_TRUE:
+  MOV(R0, IMM(1));
+ L_IS_SOB_STRING_EXIT:
+  POP(FP);
+  RETURN;
+
+  IS_CHAR:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_CHAR));
+  JUMP_EQ(L_IS_SOB_CHAR_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(L_IS_SOB_CHAR_EXIT);
+ L_IS_SOB_CHAR_TRUE:
+  MOV(R0, IMM(1));
+ L_IS_SOB_CHAR_EXIT:
+  POP(FP);
+  RETURN;
+
+
+IS_SYMBOL:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_SYMBOL));
+  JUMP_EQ(L_IS_SOB_SYMBOL_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(L_IS_SOB_SYMBOL_EXIT);
+ L_IS_SOB_SYMBOL_TRUE:
+  MOV(R0, IMM(1));
+ L_IS_SOB_SYMBOL_EXIT:
+  POP(FP);
+  RETURN;
+
+IS_VECTOR:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_VECTOR));
+  JUMP_EQ(L_IS_SOB_VECTOR_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(L_IS_SOB_VECTOR_EXIT);
+ L_IS_SOB_VECTOR_TRUE:
+  MOV(R0, IMM(1));
+ L_IS_SOB_VECTOR_EXIT:
+  POP(FP);
+  RETURN;
+
+IS_PAIR:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_PAIR));
+  JUMP_EQ(L_IS_PAIR_VECTOR_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(L_IS_SOB_PAIR_EXIT);
+ L_IS_SOB_PAIR_TRUE:
+  MOV(R0, IMM(1));
+ L_IS_SOB_PAIR_EXIT:
+  POP(FP);
+  RETURN;
+
+  JUMP(CONTINUE);
+
+
 
  CONTINUE:
