@@ -604,7 +604,7 @@
 			nl
 			"// Here starts the code of the actual lambda" nl
 			nl
-			;(code-gen body)
+			(code-gen body)
 			nl
 			"// Here ends the code of the actual lambda" nl
 			nl
