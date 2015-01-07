@@ -399,11 +399,12 @@
 	(with e (lambda(const exp)
 	(cond ((number? exp)(string-append "MAKE_INTEGER("(number->string exp)");" nl ))
 		  ((string? exp)(string->chars exp ))
-		  ((char? exp)(string-append "MAKE_CHAR(" (char->integer exp)  ");" nl))
+		  ((char? exp)(string-append "MAKE_CHAR(" (number->string (char->integer exp))  ");" nl))
 		  ((boolean? exp)(if (equal? #f exp)
 						(string-append "MAKE_BOOL(SOB_BOOLEAN_FALSE);" nl)
 		  				(string-append "MAKE_BOOL(SOB_BOOLEAN_TRUE);" nl)))
 		  ((symbol? exp)(string-append "MAKE_SYMBOL(" (symbol->string exp )");"  nl))
+
 		  (else exp))	
 	)))
 
@@ -456,6 +457,7 @@
 				((equal? op 'vector?)(string-append "MAKE_CLOSURE(IS_VECTOR);" nl))
 				((equal? op 'symbol?)(string-append "MAKE_CLOSURE(IS_SYMBOL);" nl))	
 				((equal? op 'pair?)(string-append "MAKE_CLOSURE(IS_PAIR);" nl))	
+				((equal? op 'make-string)(string-append "MAKE_CLOSURE(MAKE_STRING);" nl))
 			(else op))
 		)
 	)

@@ -1,1 +1,1 @@
-((lambda(x)x) 2)
+(make-string 3)

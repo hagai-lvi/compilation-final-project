@@ -23,62 +23,12 @@ DROP(1);
   #include "functions.lib"
 
    CONTINUE:
-MAKE_INTEGER(2);
-PUSH(R0); 
-MAKE_INTEGER(2);
-PUSH(R0); 
-MAKE_INTEGER(2);
-PUSH(R0); 
-MAKE_INTEGER(2);
-PUSH(R0); 
 MAKE_INTEGER(3);
 PUSH(R0); 
 //end of params
-PUSH(IMM(2));
+PUSH(IMM(1));
 //**************proc code**********
-MAKE_CLOSURE(CONS);
-//**************proc code**********
-CMP(IND(R0),T_CLOSURE);
-JUMP_NE(lnot_proc);
-MOV(R1,INDD(R0 , IMM(1))); //push env
-PUSH(R1);
-CALL(*(INDD(R0 , IMM(2)))); // jump to code label
-MOV(R1,SCMNARGS);
-ADD(R1,2);
-DROP(IMM(R1)); //remove all
-PUSH(R0); 
-//end of params
-PUSH(IMM(2));
-//**************proc code**********
-MAKE_CLOSURE(CONS);
-//**************proc code**********
-CMP(IND(R0),T_CLOSURE);
-JUMP_NE(lnot_proc);
-MOV(R1,INDD(R0 , IMM(1))); //push env
-PUSH(R1);
-CALL(*(INDD(R0 , IMM(2)))); // jump to code label
-MOV(R1,SCMNARGS);
-ADD(R1,2);
-DROP(IMM(R1)); //remove all
-PUSH(R0); 
-//end of params
-PUSH(IMM(2));
-//**************proc code**********
-MAKE_CLOSURE(CONS);
-//**************proc code**********
-CMP(IND(R0),T_CLOSURE);
-JUMP_NE(lnot_proc);
-MOV(R1,INDD(R0 , IMM(1))); //push env
-PUSH(R1);
-CALL(*(INDD(R0 , IMM(2)))); // jump to code label
-MOV(R1,SCMNARGS);
-ADD(R1,2);
-DROP(IMM(R1)); //remove all
-PUSH(R0); 
-//end of params
-PUSH(IMM(2));
-//**************proc code**********
-MAKE_CLOSURE(CONS);
+MAKE_CLOSURE(MAKE_STRING);
 //**************proc code**********
 CMP(IND(R0),T_CLOSURE);
 JUMP_NE(lnot_proc);
