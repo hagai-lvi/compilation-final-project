@@ -3,17 +3,9 @@
 
 /* change to 1 for debug info to be printed: */
 #define DO_SHOW 1
-#define SCMARG(n) (FPARG(n + 2))
-#define SCMENV (FPARG(0))
-#define SCMNARGS (FPARGS(1))
-#define SOB_BOOLEAN_FALSE 0
-#define SOB_BOOLEAN_TRUE 1
-
-#define MOVE_PVAR(j) (MOVE(R0, SCMARG(j)))
-#define MOVE_BVAR(i, j) (MOVE(R0, FPARG(0));MOVE(R0, R0[i]);MOVE(R0, R0[j]))
 
 #include "arch/cisc.h"
-
+#include "macros.h"
 int main()
 {
   START_MACHINE;
@@ -25,11 +17,23 @@ int main()
 #include "arch/math.lib"
 #include "arch/string.lib"
 #include "arch/system.lib"
+#include "arch/scheme.lib"
 
  CONTINUE:
-MOV(R0,IMM(SOB_BOOLEAN_FALSE));
+MAKE_INTEGER(2);
+PUSH(R0); 
+//end of params
+PUSH(IMM(1));
+MOVE_PVAR(0);
+PUSH(R0);
+CMP(IND(R0),T_CLOSURE);
+JUMP_NE(Lnot_proc);
+MOV(R1,INDD(R0 , IMM(1)));
+PUSH(R1);
+CALL(*(INDD(R0 , IMM(2))));
+DROP(IMM(2+SCMNARGS));
 // This code is to be appended to the final cisc file created by our compiler
-
+Lnot_proc:
   STOP_MACHINE;
 
   return 0;

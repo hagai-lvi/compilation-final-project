@@ -428,6 +428,24 @@
 				"DROP(IMM(2+SCMNARGS));" nl
 			)))))
 
+(define (code-gen-fvar e)
+	(with e 
+		(lambda(name op)
+			(cond
+				((equal? op 'cons)(string-append "CALL(MAKE_PAIR);" nl))
+				((equal? op 'car)(string-append "CALL(CAR);" nl))
+				((equal? op 'cdr)(string-append "CALL(CDR);" nl))
+				((equal? op 'boolean?)(string-append "CALL(IS_BOOL);" nl))	
+				((equal? op 'number?)(string-append "CALL(IS_NUMBER);" nl))
+				((equal? op 'string?)(string-append "CALL(IS_STRING);" nl))
+				((equal? op 'char?)(string-append "CALL(IS_CHAR);" nl))
+				((equal? op 'vector?)(string-append "CALL(IS_VECTOR);" nl))
+				((equal? op 'symbol?)(string-append "CALL(IS_SYMBOL);" nl))	
+				((equal? op 'pair?)(string-append "CALL(IS_PAIR);" nl))	
+			(else op))
+		)
+	)
+)
 (define (code-gen e)
 	(cond ((tagged-with 'const e)(code-gen-const e))
 	 	((tagged-with 'if3 e)(code-gen-if3 e))
@@ -435,7 +453,7 @@
 	 	((tagged-with 'bvar e)(code-gen-bvar e))
 	 	((tagged-with 'lambda-simple e)	(with e (lambda (name param body)(code-gen body))))
 	 	((tagged-with 'applic e)(code-gen-applic e))
-									
+		((tagged-with 'fvar e)(code-gen-fvar e))
 										
 	(else e)))
 
