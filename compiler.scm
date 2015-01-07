@@ -520,7 +520,7 @@
 
 (define (compile-scheme-file input output)
 	(let* (
-			(output-file (open-input-output-file output))
+			(output-file (open-output-file output 'replace))
 			(input-file  (open-input-file input))
 			(input-text (test (car (read-whole-file-by-token input-file))))
 			
