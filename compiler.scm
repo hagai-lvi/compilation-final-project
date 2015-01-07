@@ -382,15 +382,28 @@
 						code-dif nl
 						label-exit ":"))))))
 
+(define (make-string-of-chars list-of-chars number-of-elments)
+				(if (null? list-of-chars)
+					(string-append "PUSH(IMM(" number-of-elments "));// LENGHT OF STRING" nl
+					"CALL(MAKE_SOB_STRING);" nl)
+				(string-append "PUSH(IMM(" (car list-of-chars) "));" nl (make-string-of-chars (cdr list-of-chars) number-of-elments))))
+
+(define (string->chars e)
+	(let* ((exp (string->list e))
+			(new-list (map (lambda(el)(number->string (char->integer el))) exp))
+			(number-of-elments (number->string (length new-list))))
+			(make-string-of-chars new-list number-of-elments) 
+			))
+
 (define (code-gen-const e)
 	(with e (lambda(const exp)
 	(cond ((number? exp)(string-append "MAKE_INTEGER("(number->string exp)");" nl ))
-		  ((string? exp)(string-append "MAKE_STRING(\"" exp"\");" nl ))
+		  ((string? exp)(string->chars exp ))
 		  ((char? exp)(string-append "MAKE_CHAR(" (char->integer exp)  ");" nl))
 		  ((boolean? exp)(if (equal? #f exp)
 						(string-append "MAKE_BOOL(SOB_BOOLEAN_FALSE);" nl)
 		  				(string-append "MAKE_BOOL(SOB_BOOLEAN_TRUE);" nl)))
-		  ((symbol? exp)(string-append "MAKE_SYMBOL(" exp ");"  nl))
+		  ((symbol? exp)(string-append "MAKE_SYMBOL(" (symbol->string exp )");"  nl))
 		  (else exp))	
 	)))
 
@@ -437,7 +450,7 @@
 				((equal? op 'car)(string-append "MAKE_CLOSURE(CAR);" nl))
 				((equal? op 'cdr)(string-append "MAKE_CLOSURE(CDR);" nl))
 				((equal? op 'boolean?)(string-append "MAKE_CLOSURE(IS_BOOL);" nl))	
-				((equal? op 'number?)(string-append "MAKE_CLOSURE(IS_NUMBER);" nl))
+				((equal? op 'number?)(string-append "MAKE_CLOSURE(IS_INTEGER);" nl))
 				((equal? op 'string?)(string-append "MAKE_CLOSURE(IS_STRING);" nl))
 				((equal? op 'char?)(string-append "MAKE_CLOSURE(IS_CHAR);" nl))
 				((equal? op 'vector?)(string-append "MAKE_CLOSURE(IS_VECTOR);" nl))
