@@ -1,0 +1,152 @@
+
+  #include "macros.h"
+  #include "arch/char.lib"
+  #include "arch/io.lib"
+  #include "arch/math.lib"
+  #include "arch/string.lib"
+  #include "arch/system.lib"
+  #include "arch/scheme.lib"
+
+//make_pair
+ MAKE_PAIR:
+  PUSH(FP);
+  MOV(FP, SP);
+  PUSH(IMM(3));
+  CALL(MALLOC);
+  DROP(IMM(1));
+  MOV(IND(R0), T_PAIR);
+  MOV(INDD(R0, 1), SCMARG(0));
+  MOV(INDD(R0, 2), SCMARG(1));
+  POP(FP);
+  RETURN;
+
+CAR:
+  
+  PUSH(FP);
+  MOV(FP, SP);
+  CMP(SCMNARGS,IMM(1));
+  JUMP_NE(l_NOT_VALID_ARGUMENTS);
+  MOV(R1,SCMARG(0));
+  CMP(IND(R1), IMM(T_PAIR));
+  JUMP_NE(l_NOT_PAIR);
+  MOV(R0,INDD(R1,IMM(1)));
+  POP(FP);
+  RETURN;
+
+CDR:
+  PUSH(FP);
+  MOV(FP, SP);
+  CMP(SCMNARGS,IMM(1));
+  JUMP_NE(l_NOT_VALID_ARGUMENTS);
+  MOV(R1,SCMARG(0));
+  CMP(IND(R1), IMM(T_PAIR));
+  JUMP_NE(l_NOT_PAIR);
+  MOV(R0,INDD(R1,IMM(2)));
+  POP(FP);
+  RETURN;
+
+ IS_BOOL:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_BOOL));
+  JUMP_EQ(l_IS_SOB_BOOl_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(l_IS_SOB_BOOl_EXIT);
+ l_IS_SOB_BOOl_TRUE:
+  MOV(R0, IMM(1));
+ l_IS_SOB_BOOl_EXIT:
+  MAKE_BOOL(R0);
+  POP(FP);
+  RETURN;
+
+IS_NUNBER:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_NUMBER));
+  JUMP_EQ(l_IS_SOB_NUMBER_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(l_IS_SOB_NUMBER_EXIT);
+ l_IS_SOB_NUMBER_TRUE:
+  MOV(R0, IMM(1));
+ l_IS_SOB_NUMBER_EXIT:
+   MAKE_BOOL(R0);
+  POP(FP);
+  RETURN;
+
+IS_STRING:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_STRING));
+  JUMP_EQ(l_IS_SOB_STRING_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(l_IS_SOB_STRING_EXIT);
+ l_IS_SOB_STRING_TRUE:
+  MOV(R0, IMM(1));
+ l_IS_SOB_STRING_EXIT:
+   MAKE_BOOL(R0);
+  POP(FP);
+  RETURN;
+
+  IS_CHAR:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_CHAR));
+  JUMP_EQ(l_IS_SOB_CHAR_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(l_IS_SOB_CHAR_EXIT);
+ l_IS_SOB_CHAR_TRUE:
+  MOV(R0, IMM(1));
+ l_IS_SOB_CHAR_EXIT:
+   MAKE_BOOL(R0);
+  POP(FP);
+  RETURN;
+
+
+IS_SYMBOL:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_SYMBOL));
+  JUMP_EQ(l_IS_SOB_SYMBOl_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(l_IS_SOB_SYMBOl_EXIT);
+ l_IS_SOB_SYMBOl_TRUE:
+  MOV(R0, IMM(1));
+ l_IS_SOB_SYMBOl_EXIT:
+   MAKE_BOOL(R0);
+  POP(FP);
+  RETURN;
+
+IS_VECTOR:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_VECTOR));
+  JUMP_EQ(l_IS_SOB_VECTOR_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(l_IS_SOB_VECTOR_EXIT);
+ l_IS_SOB_VECTOR_TRUE:
+  MOV(R0, IMM(1));
+ l_IS_SOB_VECTOR_EXIT:
+   MAKE_BOOL(R0);
+  POP(FP);
+  RETURN;
+
+IS_PAIR:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_PAIR));
+  JUMP_EQ(l_IS_SOB_PAIR_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(l_IS_SOB_PAIR_EXIT);
+ l_IS_SOB_PAIR_TRUE:
+  MOV(R0, IMM(1));
+ l_IS_SOB_PAIR_EXIT:
+   MAKE_BOOL(R0);
+  POP(FP);
+  RETURN;
