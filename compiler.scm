@@ -451,9 +451,10 @@
 	 	((tagged-with 'if3 e)(code-gen-if3 e))
 	 	((tagged-with 'pvar e)(code-gen-pvar e))
 	 	((tagged-with 'bvar e)(code-gen-bvar e))
-	 	((tagged-with 'lambda-simple e)	(with e (lambda (name param body)(code-gen body))))
+	 	;((tagged-with 'lambda-simple e)	(with e (lambda (name param body)(code-gen body))))
 	 	((tagged-with 'applic e)(code-gen-applic e))
 		((tagged-with 'fvar e)(code-gen-fvar e))
+		((tagged-with 'lambda-simple e)(code-gen-lambda e))
 										
 	(else e)))
 
@@ -531,4 +532,78 @@
 			(close-output-port output-file)
 		)))
 
+(define ^label-lambda-copy-old-env (^^label "L_lambda-copy-old-env"))
+(define ^label-lambda-make-new-env (^^label "L_lambda-make-new-env"))
+(define ^label-lambda-code (^^label "L_lambda-code"))
+(define ^label-lambda-exit (^^label "L_lambda-exit"))
+;
+(define code-gen-lambda
+	(lambda (e)
+		(let* (	(vars (cadr e))
+				(body (caddr e))
+				(numOfVars (number->string (length vars) ))
+				(label-copy-old-env (^label-lambda-copy-old-env))
+				(label-make-new-env (^label-lambda-make-new-env))
+				(label-code (^label-lambda-code))
+				(label-exit (^label-lambda-exit)))
+		(string-append
+			"// Starting code-gen for lambda" nl
+			(code-for-env-size "r3") nl
+			"PUSH(r3); // store env size" nl
+			"CALL(MALLOC); // allocate mem for new env" nl
+			"DROP(IMM(1));" nl
+			"MOV(r1,r0) // pointer to the new env;" nl
+			"MOV(r2,FPARG(0)); // pointer to the old env" nl
+			"MOV(r4,IMM(0)); // r4 is i" nl
+			"MOV(r5,IMM(1)); // r5 is j" nl
+			"// here we are iterating to copy the old env" nl
+			"// in to the new one" nl
+			label-copy-old-env ":" nl
+			"MOV( INDD(r1,r5), INDD(r2,r4))" nl
+			"INCR(r4); //++i" nl
+			"INCR(r5); //++j" nl
+			"CMP(r4,r3);" nl
+			"JUMP_LT(" label-copy-old-env "); // another iteration" nl
+			nl
+			"// Add the current params to the env" nl
+			"PUSH(IMM(" numOfVars ")); // number of variables" nl
+			"CALL(MALLOC)" nl
+			"MOV(r3,r0)" nl
+			"MOV(r4, IMM(0)) // i=0" nl
+			label-make-new-env ": // 'for' loop" nl
+			"MOV(r5, r4 + IMM(2))" nl
+			"MOV(INDD(r3, r4), FPARG(r5))" nl
+			"INCR(r4)" nl
+			"CMP(r4," numOfVars ");" nl
+			"JUMP_LT(" label-make-new-env "); // another iteration" nl
+			"MOV(IND(r1, r3)) // move pointer to the pvars to the new env" nl
+			"PUSH(IMM(3))" nl
+			"CALL(MALLOC) // memory for the closure data struct" nl
+			"MOV(INDD(r0, 0), T_CLOSURE)" nl
+			"MOV(INDD(r0, 1), r1) // pointer to the new env" nl
+			"MOV(INDD(r0, 2), &&" label-code ") // pointer to the code" nl
+			"JUMP(" label-exit ");"
+			label-copy-old-env ": // the begining of the actual code of the lambda" nl
+			"PUSH(fp)" nl
+			"MOV(fp, sp)" nl
+			"// TODO need to check arguments here" nl; TODO check arguments etc
+			nl
+			"// Here starts the code of the actual lambda" nl
+			nl
+			;(code-gen body)
+			nl
+			"// Here ends the code of the actual lambda" nl
+			nl
+			"POP(fp)" nl
+			"RETURN" nl
+			label-exit nl
 
+		))))
+
+; This function creates code for storing the ENV's size
+; to the desired register
+; TODO
+(define code-for-env-size
+	(lambda (target-rgstr)
+		"// TODO code-for-env-size"
+	))
