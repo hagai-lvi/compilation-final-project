@@ -99,5 +99,4 @@
 
 (exit (+ (run-test-suites
 							parse-tests
-							compiler-tests
-						)))
+							compiler-tests)))
