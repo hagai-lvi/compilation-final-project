@@ -394,7 +394,7 @@
 		  (else exp))	
 	)))
 
-
+	
 
 
 (define (code-gen-pvar e)
@@ -409,22 +409,22 @@
 
 (define gen-code-params (lambda (params) 
 					(if (null? params)
-						""	
-						(string-append (code-gen (car params)) nl "PUSH(R0);" nl ( gen-code-params  (cdr params))))))
+						(string-append "//end of params" nl )	
+						(string-append (code-gen (car params))  "PUSH(R0); " nl  ( gen-code-params  (cdr params))))))
 
 (define (code-gen-applic e)
 	(with e (lambda (name operator params)
 	(let* ((params-code (gen-code-params params))
 			(proc-code (code-gen operator)))
 			(string-append params-code	
-				"push (IMM(" (number->string (length params ))"));" 
-				proc-code 
+				"PUSH(IMM("(number->string (length params))"));" nl
+					proc-code 
 				"PUSH(R0);" nl
-				"CALL(IS_SOB_CLOSURE);"	nl
-				"‫‪JUMP‬‬_‫‪NE(Lnot_proc)‬‬;" nl
-				"MOV(R1,INDD(R0,IMM(1));"
-				"PUSH(INDD(R0,IMM(1)));" nl 
-				"CALL(INDD(R0,IMM(2)));" nl
+				"CMP(IND(R0),T_CLOSURE);"	nl
+				"JUMP_NE(Lnot_proc);" nl
+				"MOV(R1,INDD(R0 , IMM(1)));" nl
+				"PUSH(R1);" nl 
+				"CALL(*(INDD(R0 , IMM(2))));" nl
 				"DROP(IMM(2+SCMNARGS));" nl
 			)))))
 
