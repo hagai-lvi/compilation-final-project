@@ -458,6 +458,7 @@
 				((equal? op 'symbol?)(string-append "MAKE_CLOSURE(IS_SYMBOL);" nl))	
 				((equal? op 'pair?)(string-append "MAKE_CLOSURE(IS_PAIR);" nl))	
 				((equal? op 'make-string)(string-append "MAKE_CLOSURE(MAKE_STRING);" nl))
+				((equal? op 'char->integer)(string-append "MAKE_CLOSURE(CHAR_TO_INTEGER);" nl))
 			(else op))
 		)
 	)
@@ -469,6 +470,7 @@
 	 	((tagged-with 'bvar e)(code-gen-bvar e))
 	 	;((tagged-with 'lambda-simple e)	(with e (lambda (name param body)(code-gen body))))
 	 	((tagged-with 'applic e)(code-gen-applic e))
+	 	((tagged-with 'tc-applic e)(code-gen-applic e))
 		((tagged-with 'fvar e)(code-gen-fvar e))
 		((tagged-with 'lambda-simple e)(code-gen-lambda e))
 										
@@ -564,40 +566,40 @@
 				(label-exit (^label-lambda-exit)))
 		(string-append
 			"// Starting code-gen for lambda" nl
-			(code-for-env-size "r3") nl
-			"PUSH(r3); // store env size" nl
+			(code-for-env-size "R3") nl
+			"PUSH(R3); // store env size" nl
 			"CALL(MALLOC); // allocate mem for new env" nl
 			"DROP(IMM(1));" nl
-			"MOV(r1,r0) // pointer to the new env;" nl
-			"MOV(r2,FPARG(0)); // pointer to the old env" nl
-			"MOV(r4,IMM(0)); // r4 is i" nl
-			"MOV(r5,IMM(1)); // r5 is j" nl
+			"MOV(R1,R0) // pointer to the new env;" nl
+			"MOV(R2,FPARG(0)); // pointer to the old env" nl
+			"MOV(R4,IMM(0)); // R4 is i" nl
+			"MOV(R5,IMM(1)); // R5 is j" nl
 			"// here we are iterating to copy the old env" nl
 			"// in to the new one" nl
 			label-copy-old-env ":" nl
-			"MOV( INDD(r1,r5), INDD(r2,r4))" nl
-			"INCR(r4); //++i" nl
-			"INCR(r5); //++j" nl
-			"CMP(r4,r3);" nl
+			"MOV( INDD(R1,R5), INDD(R2,R4))" nl
+			"INCR(R4); //++i" nl
+			"INCR(R5); //++j" nl
+			"CMP(R4,R3);" nl
 			"JUMP_LT(" label-copy-old-env "); // another iteration" nl
 			nl
 			"// Add the current params to the env" nl
 			"PUSH(IMM(" numOfVars ")); // number of variables" nl
 			"CALL(MALLOC)" nl
-			"MOV(r3,r0)" nl
-			"MOV(r4, IMM(0)) // i=0" nl
+			"MOV(R3,R0)" nl
+			"MOV(R4, IMM(0)) // i=0" nl
 			label-make-new-env ": // 'for' loop" nl
-			"MOV(r5, r4 + IMM(2))" nl
-			"MOV(INDD(r3, r4), FPARG(r5))" nl
-			"INCR(r4)" nl
-			"CMP(r4," numOfVars ");" nl
+			"MOV(R5, R4 + IMM(2))" nl
+			"MOV(INDD(R3, R4), FPARG(R5))" nl
+			"INCR(R4)" nl
+			"CMP(R4," numOfVars ");" nl
 			"JUMP_LT(" label-make-new-env "); // another iteration" nl
-			"MOV(IND(r1, r3)) // move pointer to the pvars to the new env" nl
+			"MOV(IND(R1, R3)) // move pointer to the pvars to the new env" nl
 			"PUSH(IMM(3))" nl
 			"CALL(MALLOC) // memory for the closure data struct" nl
-			"MOV(INDD(r0, 0), T_CLOSURE)" nl
-			"MOV(INDD(r0, 1), r1) // pointer to the new env" nl
-			"MOV(INDD(r0, 2), &&" label-code ") // pointer to the code" nl
+			"MOV(INDD(R0, 0), T_CLOSURE)" nl
+			"MOV(INDD(R0, 1), R1) // pointer to the new env" nl
+			"MOV(INDD(R0, 2), &&" label-code ") // pointer to the code" nl
 			"JUMP(" label-exit ");"
 			label-copy-old-env ": // the begining of the actual code of the lambda" nl
 			"PUSH(fp)" nl
