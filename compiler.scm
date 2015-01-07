@@ -382,19 +382,61 @@
 						code-dif nl
 						label-exit ":"))))))
 
-(define (cod-gen-const e)
+(define (code-gen-const e)
 	(with e (lambda(const exp)
-	(cond ((number? exp)(string-append "MOV(R0,IMM(" (number->string exp) "));" nl))
-		  ((string? exp)(string-append "MOV(R0,IMM(\""  exp "\"));" nl))
-		  ((char? exp)(string-append "MOV(R0,IMM('"  exp  "''));" nl))
+	(cond ((number? exp)(string-append "MAKE_INTEGER("(number->string exp)");" nl ))
+		  ((string? exp)(string-append "MAKE_STRING(\"" exp"\");" nl ))
+		  ((char? exp)(string-append "MAKE_CHAR(" (char->integer exp)  ");" nl))
 		  ((boolean? exp)(if (equal? #f exp)
-						(string-append "MOV(R0,IMM(SOB_BOOLEAN_FALSE));" nl)
-		  				(string-append "MOV(R0,IMM(SOB_BOOLEAN_TRUE));" nl)))
+						(string-append "MAKE_BOOLEAN(SOB_BOOLEAN_FALSE);" nl)
+		  				(string-append "MAKE_BOOLEAN(SOB_BOOLEAN_TRUE);" nl)))
+		  ((symbol? exp)(string-append "MAKE_SYMBOL(" exp ");"  nl))
 		  (else exp))	
 	)))
 
-(define (cod-gen e)
-	(cond ((tagged-with 'const e)(cod-gen-const e))
+	
+
+
+(define (code-gen-pvar e)
+	(with e (lambda(pvar var index)
+	(string-append "MOVE_PVAR(" (number->string index) ");" nl)
+	)))
+
+(define (code-gen-bvar e)
+	(with e (lambda(name var i j)
+	(string-append "MOVE_BVAR(" (number->string i) "," (number->string j) ");" nl)
+	)))
+
+(define gen-code-params (lambda (params) 
+					(if (null? params)
+						(string-append "//end of params" nl )	
+						(string-append (code-gen (car params))  "PUSH(R0); " nl  ( gen-code-params  (cdr params))))))
+
+(define (code-gen-applic e)
+	(with e (lambda (name operator params)
+	(let* ((params-code (gen-code-params params))
+			(proc-code (code-gen operator)))
+			(string-append params-code	
+				"PUSH(IMM("(number->string (length params))"));" nl
+					proc-code 
+				"PUSH(R0);" nl
+				"CMP(IND(R0),T_CLOSURE);"	nl
+				"JUMP_NE(Lnot_proc);" nl
+				"MOV(R1,INDD(R0 , IMM(1)));" nl
+				"PUSH(R1);" nl 
+				"CALL(*(INDD(R0 , IMM(2))));" nl
+				"DROP(IMM(2+SCMNARGS));" nl
+			)))))
+
+(define (code-gen e)
+	(cond ((tagged-with 'const e)(code-gen-const e))
+	 	((tagged-with 'if3 e)(code-gen-if3 e))
+	 	((tagged-with 'pvar e)(code-gen-pvar e))
+	 	((tagged-with 'bvar e)(code-gen-bvar e))
+	 	((tagged-with 'lambda-simple e)	(with e (lambda (name param body)(code-gen body))))
+	 	((tagged-with 'applic e)(code-gen-applic e))
+									
+										
 	(else e)))
 
 
@@ -454,7 +496,7 @@
 
 (define (code-gen-text input-text output-file)
 ;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
-(display (cod-gen input-text) output-file))
+(display (code-gen input-text) output-file))
 
 
 (define (compile-scheme-file input output)
