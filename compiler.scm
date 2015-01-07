@@ -388,8 +388,8 @@
 		  ((string? exp)(string-append "MAKE_STRING(\"" exp"\");" nl ))
 		  ((char? exp)(string-append "MAKE_CHAR(" (char->integer exp)  ");" nl))
 		  ((boolean? exp)(if (equal? #f exp)
-						(string-append "MAKE_BOOLEAN(SOB_BOOLEAN_FALSE);" nl)
-		  				(string-append "MAKE_BOOLEAN(SOB_BOOLEAN_TRUE);" nl)))
+						(string-append "MAKE_BOOL(SOB_BOOLEAN_FALSE);" nl)
+		  				(string-append "MAKE_BOOL(SOB_BOOLEAN_TRUE);" nl)))
 		  ((symbol? exp)(string-append "MAKE_SYMBOL(" exp ");"  nl))
 		  (else exp))	
 	)))
@@ -399,12 +399,12 @@
 
 (define (code-gen-pvar e)
 	(with e (lambda(pvar var index)
-	(string-append "MOVE_PVAR(" (number->string index) ");" nl)
+	(string-append "MOV_PVAR(" (number->string index) ");" nl)
 	)))
 
 (define (code-gen-bvar e)
 	(with e (lambda(name var i j)
-	(string-append "MOVE_BVAR(" (number->string i) "," (number->string j) ");" nl)
+	(string-append "MOV_BVAR(" (number->string i) "," (number->string j) ");" nl)
 	)))
 
 (define gen-code-params (lambda (params) 
@@ -418,30 +418,31 @@
 			(proc-code (code-gen operator)))
 			(string-append params-code	
 				"PUSH(IMM("(number->string (length params))"));" nl
-					proc-code 
-				"PUSH(R0);" nl
+				"//**************proc code**********" nl	proc-code "//**************proc code**********" nl
 				"CMP(IND(R0),T_CLOSURE);"	nl
-				"JUMP_NE(Lnot_proc);" nl
-				"MOV(R1,INDD(R0 , IMM(1)));" nl
+				"JUMP_NE(lnot_proc);" nl
+				"MOV(R1,INDD(R0 , IMM(1))); //push env" nl
 				"PUSH(R1);" nl 
-				"CALL(*(INDD(R0 , IMM(2))));" nl
-				"DROP(IMM(2+SCMNARGS));" nl
+				"CALL(*(INDD(R0 , IMM(2)))); // jump to code label" nl
+				"MOV(R1,SCMNARGS);" nl
+				"ADD(R1,2);" nl
+				"DROP(IMM(R1)); //remove all" nl
 			)))))
 
 (define (code-gen-fvar e)
 	(with e 
 		(lambda(name op)
 			(cond
-				((equal? op 'cons)(string-append "CALL(MAKE_PAIR);" nl))
-				((equal? op 'car)(string-append "CALL(CAR);" nl))
-				((equal? op 'cdr)(string-append "CALL(CDR);" nl))
-				((equal? op 'boolean?)(string-append "CALL(IS_BOOL);" nl))	
-				((equal? op 'number?)(string-append "CALL(IS_NUMBER);" nl))
-				((equal? op 'string?)(string-append "CALL(IS_STRING);" nl))
-				((equal? op 'char?)(string-append "CALL(IS_CHAR);" nl))
-				((equal? op 'vector?)(string-append "CALL(IS_VECTOR);" nl))
-				((equal? op 'symbol?)(string-append "CALL(IS_SYMBOL);" nl))	
-				((equal? op 'pair?)(string-append "CALL(IS_PAIR);" nl))	
+				((equal? op 'cons)(string-append "MAKE_CLOSURE(CONS);" nl))
+				((equal? op 'car)(string-append "MAKE_CLOSURE(CAR);" nl))
+				((equal? op 'cdr)(string-append "MAKE_CLOSURE(CDR);" nl))
+				((equal? op 'boolean?)(string-append "MAKE_CLOSURE(IS_BOOL);" nl))	
+				((equal? op 'number?)(string-append "MAKE_CLOSURE(IS_NUMBER);" nl))
+				((equal? op 'string?)(string-append "MAKE_CLOSURE(IS_STRING);" nl))
+				((equal? op 'char?)(string-append "MAKE_CLOSURE(IS_CHAR);" nl))
+				((equal? op 'vector?)(string-append "MAKE_CLOSURE(IS_VECTOR);" nl))
+				((equal? op 'symbol?)(string-append "MAKE_CLOSURE(IS_SYMBOL);" nl))	
+				((equal? op 'pair?)(string-append "MAKE_CLOSURE(IS_PAIR);" nl))	
 			(else op))
 		)
 	)
