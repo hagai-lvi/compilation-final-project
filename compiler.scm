@@ -385,7 +385,7 @@
 (define (make-string-of-chars list-of-chars number-of-elments)
 				(if (null? list-of-chars)
 					(string-append "PUSH(IMM(" number-of-elments "));// LENGHT OF STRING" nl
-					"CALL(MAKE_SOB_STRING);" nl)
+					"CALL(MAKE_SOB_STRING);" nl "DROP(" number-of-elments ");" nl "DROP(1);" nl )
 				(string-append "PUSH(IMM(" (car list-of-chars) "));" nl (make-string-of-chars (cdr list-of-chars) number-of-elments))))
 
 (define (string->chars e)
@@ -459,6 +459,7 @@
 				((equal? op 'pair?)(string-append "MAKE_CLOSURE(IS_PAIR);" nl))	
 				((equal? op 'make-string)(string-append "MAKE_CLOSURE(MAKE_STRING);" nl))
 				((equal? op 'char->integer)(string-append "MAKE_CLOSURE(CHAR_TO_INTEGER);" nl))
+				((equal? op 'make-vector)(string-append "MAKE_CLOSURE(MAKE_VECTOR);" nl))
 			(else op))
 		)
 	)
