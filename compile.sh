@@ -7,6 +7,8 @@ fi
 inputfile=$1
 outputfile=$2
 
+output=$(echo $outputfile | cut -d"." -f1)
+
 petite --script compile.scm $inputfile $outputfile
 
-gcc -o $outputfile.run -g $outputfile 
+gcc -o $output -g $outputfile 
