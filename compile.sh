@@ -9,4 +9,4 @@ outputfile=$2
 
 petite --script compile.scm $inputfile $outputfile
 
-gcc -o outputfile.run -g $outputfile 
+gcc -o $outputfile.run -g $outputfile 
