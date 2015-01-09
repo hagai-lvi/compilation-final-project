@@ -11,4 +11,6 @@ output=$(echo $outputfile | cut -d"." -f1)
 
 petite --script compile.scm $inputfile $outputfile
 
-gcc -o $output -g $outputfile 
+gcc -o $output -g $outputfile
+
+echo "Executable file is $output"
