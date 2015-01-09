@@ -595,6 +595,7 @@
 			"// Add the current params to the env" nl
 			"PUSH(IMM(" numOfVars ")); // number of variables" nl
 			"CALL(MALLOC);" nl
+			"DROP(IMM(1));" nl
 			"MOV(R3,R0);" nl
 			"MOV(R4, IMM(0)); // i=0" nl
 			label-make-new-env ": // 'for' loop" nl
@@ -610,6 +611,7 @@
 			"MOV(IND(R1), R3); // move pointer to the pvars to the new env" nl
 			"PUSH(IMM(3));" nl
 			"CALL(MALLOC); // memory for the closure data struct" nl
+			"DROP(IMM(1));" nl
 			"MOV(INDD(R0, 0), T_CLOSURE);" nl
 			"MOV(INDD(R0, 1), R1); // pointer to the new env" nl
 			"MOV(INDD(R0, 2), LABEL(" label-code ")); // pointer to the code" nl
