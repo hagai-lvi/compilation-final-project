@@ -1,0 +1,8 @@
+(load "compiler.scm")
+(let (	(input (cadr (command-line)))
+		(output (caddr (command-line))))
+	(display "Using input file: ")(display input) (newline)
+	(display "Using output file: ")(display output) (newline)
+	(display "Compiling...") (newline)
+	(compile-scheme-file input output)
+	(display "Finished compiling") (newline))
