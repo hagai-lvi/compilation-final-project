@@ -438,7 +438,7 @@
 				"MOV(R1,INDD(R0 , IMM(1))); //push env" nl
 				"PUSH(R1);" nl 
 				"CALLA((INDD(R0 , IMM(2)))); // jump to code label" nl
-				"MOV(R1,SCMNARGS);" nl
+				"MOV(R1,STARG(0));" nl
 				"ADD(R1,2);" nl
 				"DROP(IMM(R1)); //remove all" nl
 			)))))
