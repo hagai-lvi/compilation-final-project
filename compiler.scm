@@ -437,7 +437,7 @@
 				"JUMP_NE(lnot_proc);" nl
 				"MOV(R1,INDD(R0 , IMM(1))); //push env" nl
 				"PUSH(R1);" nl 
-				"CALL(*(INDD(R0 , IMM(2)))); // jump to code label" nl
+				"CALLA((INDD(R0 , IMM(2)))); // jump to code label" nl
 				"MOV(R1,SCMNARGS);" nl
 				"ADD(R1,2);" nl
 				"DROP(IMM(R1)); //remove all" nl
@@ -451,7 +451,7 @@
 				((equal? op 'car)(string-append "MAKE_CLOSURE(CAR);" nl))
 				((equal? op 'cdr)(string-append "MAKE_CLOSURE(CDR);" nl))
 				((equal? op 'boolean?)(string-append "MAKE_CLOSURE(IS_BOOL);" nl))	
-				((equal? op 'number?)(string-append "MAKE_CLOSURE(IS_INTEGER);" nl))
+				((equal? op 'integer?)(string-append "MAKE_CLOSURE(IS_INTEGER);" nl))
 				((equal? op 'string?)(string-append "MAKE_CLOSURE(IS_STRING);" nl))
 				((equal? op 'char?)(string-append "MAKE_CLOSURE(IS_CHAR);" nl))
 				((equal? op 'vector?)(string-append "MAKE_CLOSURE(IS_VECTOR);" nl))
@@ -554,10 +554,10 @@
 			(close-output-port output-file)
 		)))
 
-(define ^label-lambda-copy-old-env (^^label "L_lambda-copy-old-env"))
-(define ^label-lambda-make-new-env (^^label "L_lambda-make-new-env"))
-(define ^label-lambda-code (^^label "L_lambda-code"))
-(define ^label-lambda-exit (^^label "L_lambda-exit"))
+(define ^label-lambda-copy-old-env (^^label "L_lambda_copy_old_env"))
+(define ^label-lambda-make-new-env (^^label "L_lambda_make_new_env"))
+(define ^label-lambda-code (^^label "L_lambda_code"))
+(define ^label-lambda-exit (^^label "L_lambda_exit"))
 ;
 (define code-gen-lambda
 	(lambda (e)
@@ -574,7 +574,7 @@
 			"PUSH(R3); // store env size" nl
 			"CALL(MALLOC); // allocate mem for new env" nl
 			"DROP(IMM(1));" nl
-			"MOV(R1,R0) // pointer to the new env;" nl
+			"MOV(R1,R0); // pointer to the new env;" nl
 			"MOV(R2,FPARG(0)); // pointer to the old env" nl
 			"MOV(R4,IMM(0)); // R4 is i" nl
 			"MOV(R5,IMM(1)); // R5 is j" nl
@@ -589,25 +589,27 @@
 			nl
 			"// Add the current params to the env" nl
 			"PUSH(IMM(" numOfVars ")); // number of variables" nl
-			"CALL(MALLOC)" nl
-			"MOV(R3,R0)" nl
-			"MOV(R4, IMM(0)) // i=0" nl
+			"CALL(MALLOC);" nl
+			"MOV(R3,R0);" nl
+			"MOV(R4, IMM(0)); // i=0" nl
 			label-make-new-env ": // 'for' loop" nl
-			"MOV(R5, R4 + IMM(2))" nl
-			"MOV(INDD(R3, R4), FPARG(R5))" nl
-			"INCR(R4)" nl
+			"MOV(R6,R4);" nl
+			"ADD(R6,IMM(2));" nl
+			"MOV(R5, R6);" nl
+			"MOV(INDD(R3, R4), FPARG(R5));" nl
+			"INCR(R4);" nl
 			"CMP(R4," numOfVars ");" nl
 			"JUMP_LT(" label-make-new-env "); // another iteration" nl
-			"MOV(IND(R1, R3)) // move pointer to the pvars to the new env" nl
-			"PUSH(IMM(3))" nl
-			"CALL(MALLOC) // memory for the closure data struct" nl
-			"MOV(INDD(R0, 0), T_CLOSURE)" nl
-			"MOV(INDD(R0, 1), R1) // pointer to the new env" nl
-			"MOV(INDD(R0, 2), &&" label-code ") // pointer to the code" nl
+			"MOV(IND(R1), R3); // move pointer to the pvars to the new env" nl
+			"PUSH(IMM(3));" nl
+			"CALL(MALLOC); // memory for the closure data struct" nl
+			"MOV(INDD(R0, 0), T_CLOSURE);" nl
+			"MOV(INDD(R0, 1), R1); // pointer to the new env" nl
+			"MOV(INDD(R0, 2), LABEL(" label-code ")); // pointer to the code" nl
 			"JUMP(" label-exit ");"
-			label-copy-old-env ": // the begining of the actual code of the lambda" nl
-			"PUSH(fp)" nl
-			"MOV(fp, sp)" nl
+			label-code ": // the begining of the actual code of the lambda" nl
+			"PUSH(FP);" nl
+			"MOV(FP, SP);" nl
 			"// TODO need to check arguments here" nl; TODO check arguments etc
 			nl
 			"// Here starts the code of the actual lambda" nl
@@ -616,9 +618,9 @@
 			nl
 			"// Here ends the code of the actual lambda" nl
 			nl
-			"POP(fp)" nl
-			"RETURN" nl
-			label-exit nl
+			"POP(FP);" nl
+			"RETURN;" nl
+			label-exit ":" nl
 
 		))))
 
