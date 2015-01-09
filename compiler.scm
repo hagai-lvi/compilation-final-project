@@ -382,11 +382,19 @@
 						code-dif nl
 						label-exit ":"))))))
 
-(define (make-string-of-chars list-of-chars number-of-elments)
+(define (make-string-of-chars list-of-chars number-of-elments type)
 				(if (null? list-of-chars)
 					(string-append "PUSH(IMM(" number-of-elments "));// LENGHT OF STRING" nl
-					"CALL(MAKE_SOB_STRING);" nl "DROP(" number-of-elments ");" nl "DROP(1);" nl )
-				(string-append "PUSH(IMM(" (car list-of-chars) "));" nl (make-string-of-chars (cdr list-of-chars) number-of-elments))))
+					"CALL(" type ");" nl "DROP(" number-of-elments ");" nl "DROP(1);" nl )
+				(string-append "PUSH(IMM(" (car list-of-chars) "));" nl (make-string-of-chars (cdr list-of-chars) number-of-elments) type)))
+
+(define (string->chars e type)
+	(let* ((exp (string->list e))
+			(new-list (map (lambda(el)(number->string (char->integer el))) exp))
+			(number-of-elments (number->string (length new-list))))
+			(make-string-of-chars new-list number-of-elments type) 
+			))
+
 
 (define (string->chars e)
 	(let* ((exp (string->list e))
@@ -395,11 +403,14 @@
 			(make-string-of-chars new-list number-of-elments) 
 			))
 
+
 (define (code-gen-const e)
 	(with e (lambda(const exp)
-	(cond ((number? exp)(string-append "MAKE_INTEGER("(number->string exp)");" nl ))
-		  ((string? exp)(string->chars exp ))
-		  ((char? exp)(string-append "MAKE_CHAR(" (number->string (char->integer exp))  ");" nl))
+	(cond ((number? exp)(if (integer? exp)
+							(string-append "MAKE_INTEGER("(number->string exp)");" nl )
+							(string-append (string->chars (number->string exp)) )))
+		  ((string? exp)(string->chars exp "MAKE_SOB_NUMBER"))
+		  ((char? exp)(string-append "MAKE_CHAR(" (number->string (char->integer exp) "MAKE_SOB_STRING")  ");" nl))
 		  ((boolean? exp)(if (equal? #f exp)
 						(string-append "MAKE_BOOL(SOB_BOOLEAN_FALSE);" nl)
 		  				(string-append "MAKE_BOOL(SOB_BOOLEAN_TRUE);" nl)))
