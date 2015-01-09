@@ -558,6 +558,7 @@
 (define ^label-lambda-make-new-env (^^label "L_lambda_make_new_env"))
 (define ^label-lambda-code (^^label "L_lambda_code"))
 (define ^label-lambda-exit (^^label "L_lambda_exit"))
+(define ^label-lambda-exit-loop (^^label "L_lambda_exit_loop"))
 ;
 (define code-gen-lambda
 	(lambda (e)
@@ -567,7 +568,9 @@
 				(label-copy-old-env (^label-lambda-copy-old-env))
 				(label-make-new-env (^label-lambda-make-new-env))
 				(label-code (^label-lambda-code))
-				(label-exit (^label-lambda-exit)))
+				(label-exit (^label-lambda-exit))
+				(label-exit-loop-old-env (^label-lambda-exit-loop))
+				(label-exit-loop-new-env (^label-lambda-exit-loop)))
 		(string-append
 			"// Starting code-gen for lambda" nl
 			(code-for-env-size "R3") nl
@@ -578,14 +581,16 @@
 			"MOV(R2,FPARG(0)); // pointer to the old env" nl
 			"MOV(R4,IMM(0)); // R4 is i" nl
 			"MOV(R5,IMM(1)); // R5 is j" nl
-			"// here we are iterating to copy the old env" nl
+			"// iterating to copy the old env" nl
 			"// in to the new one" nl
 			label-copy-old-env ":" nl
+			"CMP(R4,R3);" nl
+			"JUMP_EQ(" label-exit-loop-old-env ");" nl
 			"MOV( INDD(R1,R5), INDD(R2,R4))" nl
 			"INCR(R4); //++i" nl
 			"INCR(R5); //++j" nl
-			"CMP(R4,R3);" nl
-			"JUMP_LT(" label-copy-old-env "); // another iteration" nl
+			"JUMP(" label-copy-old-env "); // another iteration" nl
+			label-exit-loop-old-env ": //end of for loop" nl
 			nl
 			"// Add the current params to the env" nl
 			"PUSH(IMM(" numOfVars ")); // number of variables" nl
@@ -593,13 +598,15 @@
 			"MOV(R3,R0);" nl
 			"MOV(R4, IMM(0)); // i=0" nl
 			label-make-new-env ": // 'for' loop" nl
+			"CMP(R4," numOfVars ");" nl
+			"JUMP_EQ(" label-exit-loop-new-env ");" nl
 			"MOV(R6,R4);" nl
 			"ADD(R6,IMM(2));" nl
 			"MOV(R5, R6);" nl
 			"MOV(INDD(R3, R4), FPARG(R5));" nl
 			"INCR(R4);" nl
-			"CMP(R4," numOfVars ");" nl
-			"JUMP_LT(" label-make-new-env "); // another iteration" nl
+			"JUMP(" label-make-new-env "); // another iteration" nl
+			label-exit-loop-new-env ": // end of for loop" nl
 			"MOV(IND(R1), R3); // move pointer to the pvars to the new env" nl
 			"PUSH(IMM(3));" nl
 			"CALL(MALLOC); // memory for the closure data struct" nl
