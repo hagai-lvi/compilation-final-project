@@ -382,23 +382,28 @@
 						code-dif nl
 						label-exit ":"))))))
 
-(define (make-string-of-chars list-of-chars number-of-elments)
+(define (make-string-of-chars list-of-chars number-of-elments type)
 				(if (null? list-of-chars)
 					(string-append "PUSH(IMM(" number-of-elments "));// LENGHT OF STRING" nl
-					"CALL(MAKE_SOB_STRING);" nl "DROP(" number-of-elments ");" nl "DROP(1);" nl )
-				(string-append "PUSH(IMM(" (car list-of-chars) "));" nl (make-string-of-chars (cdr list-of-chars) number-of-elments))))
+					"CALL(" type ");" nl "DROP(" number-of-elments ");" nl "DROP(1);" nl )
+					(string-append "PUSH(IMM(" (car list-of-chars) "));" nl 
+				(make-string-of-chars (cdr list-of-chars) number-of-elments type))))
 
-(define (string->chars e)
+(define (string->chars e type)
 	(let* ((exp (string->list e))
 			(new-list (map (lambda(el)(number->string (char->integer el))) exp))
 			(number-of-elments (number->string (length new-list))))
-			(make-string-of-chars new-list number-of-elments) 
+			(make-string-of-chars new-list number-of-elments type) 
 			))
+
+
 
 (define (code-gen-const e)
 	(with e (lambda(const exp)
-	(cond ((number? exp)(string-append "MAKE_INTEGER("(number->string exp)");" nl ))
-		  ((string? exp)(string->chars exp ))
+	(cond ((number? exp)(if (integer? exp)
+							(string-append "MAKE_INTEGER("(number->string exp)");" nl )
+							(string-append (string->chars (number->string exp) "MAKE_SOB_NUMBER") )))
+		  ((string? exp)(string->chars exp "MAKE_SOB_STRING"))
 		  ((char? exp)(string-append "MAKE_CHAR(" (number->string (char->integer exp))  ");" nl))
 		  ((boolean? exp)(if (equal? #f exp)
 						(string-append "MAKE_BOOL(SOB_BOOLEAN_FALSE);" nl)
@@ -438,7 +443,7 @@
 				"MOV(R1,INDD(R0 , IMM(1))); //push env" nl
 				"PUSH(R1);" nl 
 				"CALLA((INDD(R0 , IMM(2)))); // jump to code label" nl
-				"MOV(R1,SCMNARGS);" nl
+				"MOV(R1,STARG(0));" nl
 				"ADD(R1,2);" nl
 				"DROP(IMM(R1)); //remove all" nl
 			)))))
@@ -593,13 +598,13 @@
 			label-exit-loop-old-env ": //end of for loop" nl
 			nl
 			"// Add the current params to the env" nl
-			"PUSH(IMM(" numOfVars ")); // number of variables" nl
+			"PUSH(IMM(SCMNARGS)); // number of variables" nl
 			"CALL(MALLOC);" nl
 			"DROP(IMM(1));" nl
 			"MOV(R3,R0);" nl
 			"MOV(R4, IMM(0)); // i=0" nl
 			label-make-new-env ": // 'for' loop" nl
-			"CMP(R4," numOfVars ");" nl
+			"CMP(R4,IMM(SCMNARGS));" nl
 			"JUMP_EQ(" label-exit-loop-new-env ");" nl
 			"MOV(R6,R4);" nl
 			"ADD(R6,IMM(2));" nl
