@@ -569,7 +569,7 @@
 	(lambda (e)
 		(let* (	(vars (cadr e))
 				(body (caddr e))
-				(numOfVars (number->string (length vars) ))//TODO this is wrong! get numOfVars from the stack
+				(numOfVars (number->string (length vars) )) ;TODO this is wrong! get numOfVars from the stack
 				(label-copy-old-env (^label-lambda-copy-old-env))
 				(label-make-new-env (^label-lambda-make-new-env))
 				(label-code (^label-lambda-code))
