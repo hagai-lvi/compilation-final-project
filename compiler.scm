@@ -604,13 +604,13 @@
 			label-exit-loop-old-env ": //end of for loop" nl
 			nl
 			"// Add the current params to the env" nl
-			"PUSH(IMM(" numOfVars ")); // number of variables" nl
+			"PUSH(IMM(SCMNARGS)); // number of variables" nl
 			"CALL(MALLOC);" nl
 			"DROP(IMM(1));" nl
 			"MOV(R3,R0);" nl
 			"MOV(R4, IMM(0)); // i=0" nl
 			label-make-new-env ": // 'for' loop" nl
-			"CMP(R4," numOfVars ");" nl
+			"CMP(R4,IMM(SCMNARGS));" nl
 			"JUMP_EQ(" label-exit-loop-new-env ");" nl
 			"MOV(R6,R4);" nl
 			"ADD(R6,IMM(2));" nl
