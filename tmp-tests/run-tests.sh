@@ -13,9 +13,6 @@ do
 done
 
 # define text-colors
-# green='\033[0;32m'
-# red='\033[0;31m'
-# NC='\033[0m' # No Color
 red=$'\e[1;31m'
 green=$'\e[1;32m'
 end=$'\e[0m'
