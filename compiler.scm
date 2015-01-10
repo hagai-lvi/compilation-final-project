@@ -627,7 +627,7 @@
 			"MOV(INDD(R0, 0), T_CLOSURE);" nl
 			"MOV(INDD(R0, 1), R1); // pointer to the new env" nl
 			"MOV(INDD(R0, 2), LABEL(" label-code ")); // pointer to the code" nl
-			"JUMP(" label-exit ");"
+			"JUMP(" label-exit ");" nl
 			label-code ": // the begining of the actual code of the lambda" nl
 			"PUSH(FP);" nl
 			"MOV(FP, SP);" nl
