@@ -3,8 +3,8 @@
 # set -e # exit on error
 
 # define text-colors
-red='\033[0;32m'
-green='\033[0;31m'
+green='\033[0;32m'
+red='\033[0;31m'
 NC='\033[0m' # No Color
 
 mkdir arch
@@ -44,18 +44,15 @@ do
 
 		if cmp -s "petite-$f.out" "$f.out"; then
 		    # files are the same
-			echo -e "${green}"
-		    echo
+			echo "${green}"
 		    echo "**********************"
 		    echo "* Test for $f passed *"
 		    echo "**********************"
-		    echo
-			echo -e "${NC}"
+			echo "${NC}"
 		    passed=$[passed+1]
 		else
 		    # files are different
-			echo -e "${red}"
-		    echo
+			echo "${red}"
 		    echo "**********************"
 		    echo "* Test for $f FAILED *"
 		    echo "Expected:"
@@ -63,9 +60,8 @@ do
 		    echo "But got:"
 		    cat "$f.out"
 		    echo "**********************"
-		    echo
 		    failed=$[failed+1]
-			echo -e "${NC}"
+			echo "${NC}"
 
 		fi
 		echo "###################################################"
