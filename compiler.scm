@@ -644,7 +644,7 @@
 (define code-for-env-size
 	(lambda (target-rgstr)
 		(string-append
-			"MOV(" target-rgstr ", IMM(20); // Arbitraty value for now" nl
+			"MOV(" target-rgstr ", IMM(20)); // Arbitraty value for now" nl
 			"// TODO code-for-env-size"
 		)
 	))
