@@ -13,9 +13,12 @@ do
 done
 
 # define text-colors
-green='\033[0;32m'
-red='\033[0;31m'
-NC='\033[0m' # No Color
+# green='\033[0;32m'
+# red='\033[0;31m'
+# NC='\033[0m' # No Color
+red=$'\e[1;31m'
+green=$'\e[1;32m'
+end=$'\e[0m'
 
 mkdir arch
 cp -r ../arch/* arch/
@@ -53,15 +56,15 @@ do
 
 		if cmp -s "petite-$f.out" "$f.out"; then
 		    # files are the same
-			echo "${green}"
+			printf ${green}
 		    echo "**********************"
 		    echo "* Test for $f passed *"
 		    echo "**********************"
-			echo "${NC}"
+		    printf $end
 		    passed=$[passed+1]
 		else
 		    # files are different
-			echo "${red}"
+			printf ${red}
 		    echo "**********************"
 		    echo "* Test for $f FAILED *"
 		    echo "Expected:"
@@ -70,7 +73,7 @@ do
 		    cat "$f.out"
 		    echo "**********************"
 		    failed=$[failed+1]
-			echo "${NC}"
+			printf $end
 
 		fi
 	fi
