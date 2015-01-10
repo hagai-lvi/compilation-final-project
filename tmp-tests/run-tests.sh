@@ -80,4 +80,4 @@ rm -rf *.out
 echo "Total passed tests: $passed"
 echo "Total failed tests: $failed"
 echo "Total tests: $total"
-exit $number_of_failed_tests
+exit $failed
