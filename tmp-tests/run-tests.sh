@@ -22,7 +22,6 @@ dir="tmp-tests"
 for f in *.scm;
 do 
 	if [[ $f != pre.scm && $f != post.scm && $f != petite* ]]; then # only files that are not pre.scm post.scm and doesn't contain the prefix petite
-		echo "###################################################"
 		total=$[total+1]
 		echo "Testing $f..."
 		cat pre.scm $f post.scm > "petite-$f" # create file to be run with petite
@@ -64,7 +63,6 @@ do
 			echo "${NC}"
 
 		fi
-		echo "###################################################"
 	fi
 done
 
