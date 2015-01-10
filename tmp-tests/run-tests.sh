@@ -2,6 +2,16 @@
 # set -x # verbose
 # set -e # exit on error
 
+verbose=false
+
+while getopts "v" OPTION
+do
+  case $OPTION in
+    v) verbose=true
+       ;;
+  esac
+done
+
 # define text-colors
 green='\033[0;32m'
 red='\033[0;31m'
@@ -32,13 +42,13 @@ do
 		popd >> /dev/null
 		executable=$(echo "$f" | cut -d"." -f1)
 
-		# echo "Executing GCC"
+		$verbose && echo "Executing GCC"
 		gcc -o "$executable" "$f.c"
 
-		# echo "Running the executable"
+		$verbose && echo "Running the executable"
 		./"$executable" > "$f.out"
 
-		# echo "Deleteing the executable and compiled file"
+		$verbose && echo "Deleteing the executable and compiled file"
 		rm -rf "$executable" "$f.c"
 
 		if cmp -s "petite-$f.out" "$f.out"; then
@@ -66,13 +76,13 @@ do
 	fi
 done
 
-echo "removig temporary files"
+$verbose && echo "removig temporary files"
 rm -rf arch macros.h functions.lib
 
-echo "removig created files..."
+$verbose && echo "removig created files..."
 rm -rf petite*
 
-echo "removig output files"
+$verbose && echo "removig output files"
 rm -rf *.out
 
 echo "Total passed tests: $passed"
