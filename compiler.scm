@@ -360,6 +360,12 @@
 				(set! n (+ n 1))
 			(string-append name (number->string n))))))
 
+(define getUID
+		(let ((n 0))
+			(lambda ()
+				(set! n (+ n 1))
+			(number->string n))))
+
 
 (define ^label-if3else (^^label "Lif3else"))
 
@@ -544,21 +550,30 @@
 (define (create-imports-macros-end)
 (call-with-input-file "post_code.c" read-whole-file-by-char)) 
 
-(define (code-gen-text input-text output-file)
+(define code-gen-text (lambda(input-text)
 ;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
-(display (code-gen input-text) output-file))
+(if (null? input-text)
+	(string-append "")
+(string-append (code-gen (test (car input-text)))
+	"PUSH(R0);" nl
+"CALL(WRITE_SOB);" nl
+"CALL(NEWLINE);" nl 
+"//END OF FIRST INPUT********************************************" nl
+(code-gen-text (cdr input-text) )))))
+
+
 
 
 (define (compile-scheme-file input output)
 	(let* (
 			(output-file (open-output-file output 'replace))
 			(input-file  (open-input-file input))
-			(input-text (test (car (read-whole-file-by-token input-file))))
+			(input-text  (read-whole-file-by-token input-file))
 			
 		)
 		(begin 
 			(display (create-imports-macros-begining)  output-file)
-			(code-gen-text  input-text output-file )
+			(display (code-gen-text  input-text ) output-file)
 			(display  (create-imports-macros-end)  output-file)
 			(close-output-port output-file)
 		)))
@@ -579,9 +594,10 @@
 				(label-code (^label-lambda-code))
 				(label-exit (^label-lambda-exit))
 				(label-exit-loop-old-env (^label-lambda-exit-loop))
-				(label-exit-loop-new-env (^label-lambda-exit-loop)))
+				(label-exit-loop-new-env (^label-lambda-exit-loop))
+				(lambda-uid (string-append "lambda-" (getUID))))
 		(string-append
-			"// Starting code-gen for lambda" nl
+			"// Starting code-gen for " lambda-uid nl
 			(code-for-env-size "R3") nl
 			"PUSH(R3); // store env size" nl
 			"CALL(MALLOC); // allocate mem for new env" nl
@@ -624,17 +640,17 @@
 			"MOV(INDD(R0, 0), T_CLOSURE);" nl
 			"MOV(INDD(R0, 1), R1); // pointer to the new env" nl
 			"MOV(INDD(R0, 2), LABEL(" label-code ")); // pointer to the code" nl
-			"JUMP(" label-exit ");"
+			"JUMP(" label-exit ");" nl
 			label-code ": // the begining of the actual code of the lambda" nl
 			"PUSH(FP);" nl
 			"MOV(FP, SP);" nl
 			"// TODO need to check arguments here" nl; TODO check arguments etc
 			nl
-			"// Here starts the code of the actual lambda" nl
+			"// Here starts the code of the actual lambda " lambda-uid nl
 			nl
 			(code-gen body)
 			nl
-			"// Here ends the code of the actual lambda" nl
+			"// Here ends the code of the actual lambda " lambda-uid nl
 			nl
 			"POP(FP);" nl
 			"RETURN;" nl
@@ -647,7 +663,10 @@
 ; TODO
 (define code-for-env-size
 	(lambda (target-rgstr)
-		"// TODO code-for-env-size"
+		(string-append
+			"MOV(" target-rgstr ", IMM(20)); // Arbitraty value for now" nl
+			"// TODO code-for-env-size"
+		)
 	))
 (define ^label-tp-applic-loop (^^label "L_tp_applic_loop"))
 (define ^label-tp-applic-exit-loop (^^label "L_tp_applic_exit_loop"))
