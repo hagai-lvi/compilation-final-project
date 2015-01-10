@@ -2,6 +2,11 @@
 # set -x # verbose
 # set -e # exit on error
 
+# define text-colors
+red='\033[0;32m'
+green='\033[0;31m'
+NC='\033[0m' # No Color
+
 mkdir arch
 cp -r ../arch/* arch/
 cp ../functions.lib .
@@ -28,31 +33,40 @@ do
 		popd >> /dev/null
 		executable=$(echo "$f" | cut -d"." -f1)
 
-		echo "Executing GCC"
+		# echo "Executing GCC"
 		gcc -o "$executable" "$f.c"
 
-		echo "Running the executable"
+		# echo "Running the executable"
 		./"$executable" > "$f.out"
 
-		echo "Deleteing the executable and compiled file"
+		# echo "Deleteing the executable and compiled file"
 		rm -rf "$executable" "$f.c"
 
 		if cmp -s "petite-$f.out" "$f.out"; then
 		    # files are the same
+			echo -e "${green}"
 		    echo
 		    echo "**********************"
 		    echo "* Test for $f passed *"
 		    echo "**********************"
 		    echo
+			echo -e "${NC}"
 		    passed=$[passed+1]
 		else
 		    # files are different
+			echo -e "${red}"
 		    echo
 		    echo "**********************"
 		    echo "* Test for $f FAILED *"
+		    echo "Expected:"
+		    cat "petite-$f.out"
+		    echo "But got:"
+		    cat "$f.out"
 		    echo "**********************"
 		    echo
 		    failed=$[failed+1]
+			echo -e "${NC}"
+
 		fi
 		echo "###################################################"
 	fi
