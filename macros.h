@@ -1,4 +1,4 @@
-#define SCMARG(n) FPARG(IMM(SCMNARGS -n + 1))
+#define SCMARG(n) FPARG(IMM(n+2))
 #define SCMENV FPARG(IMM(0))
 #define SCMNARGS FPARG(IMM(1))
 #define SOB_BOOLEAN_FALSE 0

@@ -414,6 +414,7 @@
 		  ((boolean? exp)(if (equal? #f exp)
 						(string-append "MAKE_BOOL(SOB_BOOLEAN_FALSE);" nl)
 		  				(string-append "MAKE_BOOL(SOB_BOOLEAN_TRUE);" nl)))
+		  ((null? exp)(string-append "CALL(MAKE_SOB_NIL);"  nl))
 		  ((symbol? exp)(string-append "MAKE_SYMBOL(" (symbol->string exp )");"  nl))
 
 		  (else exp))	
@@ -439,7 +440,7 @@
 
 (define (code-gen-applic e)
 	(with e (lambda (name operator params)
-	(let* ((params-code (gen-code-params params))
+	(let* ((params-code (gen-code-params (reverse params)))
 			(proc-code (code-gen operator)))
 			(string-append params-code	
 				"PUSH(IMM("(number->string (length params))"));" nl
@@ -456,7 +457,7 @@
 
 (define (code-gen-fvar e)
 	(with e 
-		(lambda(name op)
+		(trace-lambda ss(name op)
 			(cond
 				((equal? op 'cons)(string-append "MAKE_CLOSURE(CONS);" nl))
 				((equal? op 'car)(string-append "MAKE_CLOSURE(CAR);" nl))
@@ -468,12 +469,15 @@
 				((equal? op 'vector?)(string-append "MAKE_CLOSURE(IS_VECTOR);" nl))
 				((equal? op 'symbol?)(string-append "MAKE_CLOSURE(IS_SYMBOL);" nl))	
 				((equal? op 'pair?)(string-append "MAKE_CLOSURE(IS_PAIR);" nl))	
+				((equal? op 'procedure?)(string-append "MAKE_CLOSURE(IS_PROC);" nl))	
 				((equal? op 'make-string)(string-append "MAKE_CLOSURE(MAKE_STRING);" nl))
 				((equal? op 'char->integer)(string-append "MAKE_CLOSURE(CHAR_TO_INTEGER);" nl))
 				((equal? op 'make-vector)(string-append "MAKE_CLOSURE(MAKE_VECTOR);" nl))
 				((equal? op 'vector-length)(string-append "MAKE_CLOSURE(VECTOR_LENGTH);" nl))
 				((equal? op 'vector-ref)(string-append "MAKE_CLOSURE(VECTOR_REF);" nl))
 				((equal? op 'vector-set!)(string-append "MAKE_CLOSURE(VECTOR_SET);" nl))
+				((equal? op 'set-car!)(string-append "MAKE_CLOSURE(SET_CAR);" nl))
+				((equal? op 'set-cdr!)(string-append "MAKE_CLOSURE(SET_CDR);" nl))
 			(else op))
 		)
 	)
@@ -546,21 +550,30 @@
 (define (create-imports-macros-end)
 (call-with-input-file "post_code.c" read-whole-file-by-char)) 
 
-(define (code-gen-text input-text output-file)
+(define code-gen-text (lambda(input-text)
 ;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
-(display (code-gen input-text) output-file))
+(if (null? input-text)
+	(string-append "")
+(string-append (code-gen (test (car input-text)))
+	"PUSH(R0);" nl
+"CALL(WRITE_SOB);" nl
+"CALL(NEWLINE);" nl 
+"//END OF FIRST INPUT********************************************" nl
+(code-gen-text (cdr input-text) )))))
+
+
 
 
 (define (compile-scheme-file input output)
 	(let* (
 			(output-file (open-output-file output 'replace))
 			(input-file  (open-input-file input))
-			(input-text (test (car (read-whole-file-by-token input-file))))
+			(input-text  (read-whole-file-by-token input-file))
 			
 		)
 		(begin 
 			(display (create-imports-macros-begining)  output-file)
-			(code-gen-text  input-text output-file )
+			(display (code-gen-text  input-text ) output-file)
 			(display  (create-imports-macros-end)  output-file)
 			(close-output-port output-file)
 		)))
@@ -659,7 +672,7 @@
 (define ^label-tp-applic-exit-loop (^^label "L_tp_applic_exit_loop"))
 (define (code-gen-tp-applic e)
 	(with e (lambda (name operator params)
-	(let* ((params-code (gen-code-params params))
+	(let* ((params-code (gen-code-params(reverse params)))
 			(proc-code (code-gen operator))
 			(loop_label (^label-tp-applic-loop))
 			(loop_label_exit (^label-tp-applic-exit-loop )))
