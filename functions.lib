@@ -463,3 +463,25 @@ WRITE_SOB_NUMBER:
   POP(R1);
   POP(FP);
   RETURN;
+
+
+STACK_PRINT:
+  PUSH(FP);
+  MOV(FP, SP);
+  PUSH(R1);
+  PUSH(R2);
+  MOV(R1,SP);
+  SHOW("STACK " ,SP);
+  DECR(R1);
+  loop:
+  CMP(R1,IMM(-1));
+  JUMP_EQ(loop_exit);
+  MOV(R2,STACK(R1));
+  SHOW("STACK " ,STACK(R1));
+  DECR(R1);
+  JUMP(loop);
+  loop_exit:
+  POP(R2);
+  POP(R1);
+  POP(FP);
+  RETURN;
