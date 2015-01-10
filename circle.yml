@@ -5,3 +5,4 @@ machine:
 test:
   override:
     - sh tests/run-test.sh
+    - cd tmp-tests && sh run-tests.sh
