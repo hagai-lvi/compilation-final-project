@@ -360,6 +360,12 @@
 				(set! n (+ n 1))
 			(string-append name (number->string n))))))
 
+(define getUID
+		(let ((n 0))
+			(lambda ()
+				(set! n (+ n 1))
+			(number->string n))))
+
 
 (define ^label-if3else (^^label "Lif3else"))
 
@@ -575,9 +581,10 @@
 				(label-code (^label-lambda-code))
 				(label-exit (^label-lambda-exit))
 				(label-exit-loop-old-env (^label-lambda-exit-loop))
-				(label-exit-loop-new-env (^label-lambda-exit-loop)))
+				(label-exit-loop-new-env (^label-lambda-exit-loop))
+				(lambda-uid (string-append "lambda-" (getUID))))
 		(string-append
-			"// Starting code-gen for lambda" nl
+			"// Starting code-gen for " lambda-uid nl
 			(code-for-env-size "R3") nl
 			"PUSH(R3); // store env size" nl
 			"CALL(MALLOC); // allocate mem for new env" nl
@@ -626,11 +633,11 @@
 			"MOV(FP, SP);" nl
 			"// TODO need to check arguments here" nl; TODO check arguments etc
 			nl
-			"// Here starts the code of the actual lambda" nl
+			"// Here starts the code of the actual lambda " lambda-uid nl
 			nl
 			(code-gen body)
 			nl
-			"// Here ends the code of the actual lambda" nl
+			"// Here ends the code of the actual lambda " lambda-uid nl
 			nl
 			"POP(FP);" nl
 			"RETURN;" nl
