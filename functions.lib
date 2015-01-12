@@ -555,3 +555,51 @@ PLUS:
   POP(R1);
   POP(FP);
   RETURN;
+
+
+MINUS:
+  PUSH(FP);
+  MOV(FP,SP);
+  CMP(0,SCMNARGS);
+  JUMP_NE(MINUS_CONTINUE);
+
+  printf("Exception: incorrect argument count in call (-)\n" );
+  POP(FP);
+  JUMP(l_NOT_VALID_ARGUMENTS);
+
+  MINUS_CONTINUE:
+  CMP(1,SCMNARGS);
+  JUMP_EQ(MINUS_UNARY);
+
+  //MINUS_REGULAR:
+  MOV(R0,SCMARG(0)); // init result
+  GET_INTEGER;
+  MOV(R1,R0); //Now we have the value of the first arg in R1
+  //Iterate over arguments and add them to the result
+  MOV(R2,1); //i=1
+  L_MINUS_LOOP :
+  CMP(R2, SCMNARGS); //number of args
+  JUMP_EQ(L_MINUS_EXIT_LOOP);
+  // Actual code for addition
+  MOV(R0,SCMARG(R2)); //get arg to R0
+  GET_INTEGER;
+  SUB(R1,R0);
+  // end actual code for addition
+  INCR(R2); //++i
+  JUMP(L_MINUS_LOOP); // another iteration
+  L_MINUS_EXIT_LOOP : //end of for loop
+  MOV(R0,R1);
+  JUMP(MINUS_FINISH);
+
+  MINUS_UNARY:
+  MOV(R0,SCMARG(0)); //get the arg
+  GET_INTEGER;
+  MOV(R1, 0);
+  SUB(R1,R0);
+  MOV(R0,R1);
+  JUMP(MINUS_FINISH);
+
+  MINUS_FINISH:
+  MAKE_INTEGER(R0);
+  POP(FP);
+  RETURN;
