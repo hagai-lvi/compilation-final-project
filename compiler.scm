@@ -457,7 +457,7 @@
 
 (define (code-gen-fvar e)
 	(with e 
-		(trace-lambda ss(name op)
+		(lambda(name op)
 			(cond
 				((equal? op 'cons)(string-append "MAKE_CLOSURE(CONS);" nl))
 				((equal? op 'car)(string-append "MAKE_CLOSURE(CAR);" nl))
