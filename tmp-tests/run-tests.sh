@@ -34,8 +34,13 @@ do
 	if [[ $f != pre.scm && $f != post.scm && $f != petite* ]]; then # only files that are not pre.scm post.scm and doesn't contain the prefix petite
 		total=$[total+1]
 		echo "Testing $f..."
-		cat pre.scm $f post.scm > "petite-$f" # create file to be run with petite
-		petite --script "petite-$f" > "petite-$f.out" 
+
+		# If out
+		if [[ -e "petite-$f.out" ]]; then
+			$verbose && echo "Output file already exist, skipping running with petite"
+			cat pre.scm $f post.scm > "petite-$f" # create file to be run with petite
+			petite --script "petite-$f" > "petite-$f.out"
+		fi 
 
 		pushd .. >> /dev/null
 		petite --script compile.scm "$dir/$f" "$dir/$f".c
