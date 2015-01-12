@@ -479,6 +479,7 @@
 				((equal? op 'set-car!)(string-append "MAKE_CLOSURE(SET_CAR);" nl))
 				((equal? op 'set-cdr!)(string-append "MAKE_CLOSURE(SET_CDR);" nl))
 				((equal? op '+ )(string-append "MAKE_CLOSURE(PLUS);" nl))
+				((equal? op '- )(string-append "MAKE_CLOSURE(MINUS);" nl))
 			(else op))
 		)
 	)
