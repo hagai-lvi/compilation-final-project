@@ -478,6 +478,7 @@
 				((equal? op 'vector-set!)(string-append "MAKE_CLOSURE(VECTOR_SET);" nl))
 				((equal? op 'set-car!)(string-append "MAKE_CLOSURE(SET_CAR);" nl))
 				((equal? op 'set-cdr!)(string-append "MAKE_CLOSURE(SET_CDR);" nl))
+				((equal? op '+ )(string-append "MAKE_CLOSURE(PLUS);" nl))
 			(else op))
 		)
 	)
@@ -487,7 +488,6 @@
 	 	((tagged-with 'if3 e)(code-gen-if3 e))
 	 	((tagged-with 'pvar e)(code-gen-pvar e))
 	 	((tagged-with 'bvar e)(code-gen-bvar e))
-	 	;((tagged-with 'lambda-simple e)	(with e (lambda (name param body)(code-gen body))))
 	 	((tagged-with 'applic e)(code-gen-applic e))
 	 	((tagged-with 'tc-applic e)(code-gen-applic e))
 		((tagged-with 'fvar e)(code-gen-fvar e))
@@ -588,7 +588,6 @@
 	(lambda (e)
 		(let* (	(vars (cadr e))
 				(body (caddr e))
-				(numOfVars (number->string (length vars) )) ;TODO this is wrong! get numOfVars from the stack
 				(label-copy-old-env (^label-lambda-copy-old-env))
 				(label-make-new-env (^label-lambda-make-new-env))
 				(label-code (^label-lambda-code))
