@@ -17,6 +17,10 @@ red=$'\e[1;31m'
 green=$'\e[1;32m'
 end=$'\e[0m'
 
+bold=`tput bold`
+smul=`tput smul`
+normal=`tput sgr0`
+
 mkdir arch
 cp -r ../arch/* arch/
 cp ../functions.lib .
@@ -33,12 +37,19 @@ for f in *.scm;
 do 
 	if [[ $f != pre.scm && $f != post.scm && $f != petite* ]]; then # only files that are not pre.scm post.scm and doesn't contain the prefix petite
 		total=$[total+1]
-		echo "Testing $f..."
-		cat pre.scm $f post.scm > "petite-$f" # create file to be run with petite
-		petite --script "petite-$f" > "petite-$f.out" 
+		echo "${bold}${smul}*** Testing $f... ***${normal}"
+
+		should_delete=false
+		# If outputfile doesn't exist
+		if ! [[ -e "petite-$f.out" ]]; then
+			$verbose && echo "Output file already exist, skipping running with petite"
+			cat pre.scm $f post.scm > "petite-$f" # create file to be run with petite
+			petite --script "petite-$f" > "petite-$f.out"
+			should_delete=true
+		fi 
 
 		pushd .. >> /dev/null
-		petite --script compile.scm "$dir/$f" "$dir/$f".c
+		petite --script compile.scm "$dir/$f" "$dir/$f.c"
 		popd >> /dev/null
 		executable=$(echo "$f" | cut -d"." -f1)
 
@@ -73,17 +84,25 @@ do
 			printf $end
 
 		fi
+
+		if [[ "$should_delete" = true ]]; then
+			$verbose && echo "Deleting petite file and outfile"
+			rm -rf "petite-$f" "petite-$f.out"
+		fi
+
+		$verbose && echo "Deleting c output file"
+		rm -rf "$f.out"
 	fi
 done
 
 $verbose && echo "removig temporary files"
 rm -rf arch macros.h functions.lib
 
-$verbose && echo "removig created files..."
-rm -rf petite*
+# $verbose && echo "removig created files..."
+# rm -rf petite*
 
-$verbose && echo "removig output files"
-rm -rf *.out
+# $verbose && echo "removig output files"
+# rm -rf *.out
 
 echo "Total passed tests: $passed"
 echo "Total failed tests: $failed"
