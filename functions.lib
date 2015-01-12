@@ -528,4 +528,30 @@ SET_CDR:
   POP(FP);
   RETURN;
 
-
+PLUS:
+  PUSH(FP);
+  MOV(FP,SP);
+  PUSH(R1);
+  PUSH(R2);
+  MOV(R0,0); // init result
+  //Iterate over arguments and add them to the result
+  MOV(R1,0); //i=0
+  L_PLUS_LOOP :
+  CMP(R1, SCMNARGS); //number of args TODO get from the stack
+  JUMP_EQ(L_PLUS_EXIT_LOOP);
+  // Actual code for addition
+  PUSH(R0); //backup
+  MOV_PVAR(R1); //get pvar to R0
+  GET_INTEGER;
+  MOV(R2,R0); //save the pvar
+  POP(R0);
+  ADD(R0,R2);
+  // end actual code for addition
+  INCR(R1); //++i
+  JUMP(L_PLUS_LOOP); // another iteration
+  L_PLUS_EXIT_LOOP : //end of for loop
+  MAKE_INTEGER(R0);
+  POP(R2);
+  POP(R1);
+  POP(FP);
+  RETURN;
