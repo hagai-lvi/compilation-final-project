@@ -563,7 +563,7 @@ MINUS:
   CMP(0,SCMNARGS);
   JUMP_NE(MINUS_CONTINUE);
 
-  printf("Exception: incorrect argument count in call (-)\n" );
+  printf("Exception: incorrect argument count in call (-)\n" ); //TODO need to change the printf
   POP(FP);
   JUMP(l_NOT_VALID_ARGUMENTS);
 
@@ -600,6 +600,30 @@ MINUS:
   JUMP(MINUS_FINISH);
 
   MINUS_FINISH:
+  MAKE_INTEGER(R0);
+  POP(FP);
+  RETURN;
+
+MULTIPLY:
+  PUSH(FP);
+  MOV(FP,SP);
+  MOV(R0,1); // init result
+  //Iterate over arguments and multiply
+  MOV(R1,0); //i=0
+  L_MULTIPLY_LOOP :
+  CMP(R1, SCMNARGS);
+  JUMP_EQ(L_MULTIPLY_EXIT_LOOP);
+  // Actual code for multiplication
+  PUSH(R0); //backup
+  MOV(R0,SCMARG(R1)); //get arg to R0
+  GET_INTEGER;
+  MOV(R2,R0); //save the arg
+  POP(R0);
+  MUL(R0,R2);
+  // end actual code for multiplication
+  INCR(R1); //++i
+  JUMP(L_MULTIPLY_LOOP); // another iteration
+  L_MULTIPLY_EXIT_LOOP : //end of for loop
   MAKE_INTEGER(R0);
   POP(FP);
   RETURN;

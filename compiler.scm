@@ -480,6 +480,7 @@
 				((equal? op 'set-cdr!)(string-append "MAKE_CLOSURE(SET_CDR);" nl))
 				((equal? op '+ )(string-append "MAKE_CLOSURE(PLUS);" nl))
 				((equal? op '- )(string-append "MAKE_CLOSURE(MINUS);" nl))
+				((equal? op '* )(string-append "MAKE_CLOSURE(MULTIPLY);" nl))
 			(else op))
 		)
 	)
