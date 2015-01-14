@@ -95,7 +95,7 @@
     unquote-splicing quote set!))
 
 (define *void-object* (void))
-
+(define (void? exp)(equal? *void-object* exp))
 
 (define (reg-lambda-args-list? list)
 	(if (not (list? list))
@@ -726,13 +726,16 @@
 
 
 
-(define lex-dic (lambda(exp) (remove-duplicates (map foo (remove-duplicates (const-list-getter exp))))))
+(define topo-sort (lambda(exp) (let ((e  (map foo (remove-duplicates (const-list-getter exp)))))
+								(if (null? e)
+									e
+								(remove-duplicates (car e))))))
 
 
 (define foo
   (trace-lambda foo(e)
     (cond
-      ((or (number? e) (string? e) (null? e) (boolean? e)) `(,e))
+      ((or (number? e) (string? e) (null? e))  `(,e))
       ((pair? e)
        `( ,@(foo (car e)) ,@(foo (cdr e) ),e))
        ((vector? e)
@@ -740,14 +743,14 @@
                       (map foo
                            (vector->list e))) ,e))
        ((symbol? e)
-        `(,@(foo (symbol->string e)) ,e))
+        `(,@(foo (symbol->string e))))
        )))
 
 (define const-list-getter 
 	(trace-lambda getter (exp)
 	(cond
 		((or (null? exp)(symbol? exp))`(,@(list)))
-		((tagged-with 'const exp)(with exp (lambda(name constr) `(,constr))))
+		((tagged-with 'const exp)(with exp (lambda(name constr) (if (or (null? constr)(boolean? constr)(void? exp)) `(,@(list))  `(,constr)))))
 		(else `(,@(const-list-getter  (car exp)) ,@(const-list-getter  (cdr exp)))))))
 
 
