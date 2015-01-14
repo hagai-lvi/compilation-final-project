@@ -723,3 +723,38 @@
 				"JUMPA((INDD(R0 , IMM(2)))); // jump to code label" nl
 				
 			)))))
+
+
+
+(define lex-dic (lambda(exp) (remove-duplicates (map foo (remove-duplicates (const-list-getter exp))))))
+
+
+(define foo
+  (trace-lambda foo(e)
+    (cond
+      ((or (number? e) (string? e) (null? e) (boolean? e)) `(,e))
+      ((pair? e)
+       `( ,@(foo (car e)) ,@(foo (cdr e) ),e))
+       ((vector? e)
+        `( ,@(apply append
+                      (map foo
+                           (vector->list e))) ,e))
+       ((symbol? e)
+        `(,@(foo (symbol->string e)) ,e))
+       )))
+
+(define const-list-getter 
+	(trace-lambda getter (exp)
+	(cond
+		((or (null? exp)(symbol? exp))`(,@(list)))
+		((tagged-with 'const exp)(with exp (lambda(name constr) `(,constr))))
+		(else `(,@(const-list-getter  (car exp)) ,@(const-list-getter  (cdr exp)))))))
+
+
+(define (remove-duplicates l)
+  (cond ((null? l)
+         '())
+        ((member (car l) (cdr l))
+         (remove-duplicates (cdr l)))
+        (else
+         (cons (car l) (remove-duplicates (cdr l))))))
