@@ -726,7 +726,8 @@
 
 
 
-(define topo-sort (lambda(exp) (let ((e  (map foo (remove-duplicates (const-list-getter exp)))))
+(define topo-sort (lambda(exp) 
+	(let ((e  (map foo (remove-duplicates (const-list-getter exp)))))
 								(if (null? e)
 									e
 								(remove-duplicates (car e))))))
