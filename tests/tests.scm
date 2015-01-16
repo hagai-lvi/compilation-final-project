@@ -55,6 +55,12 @@
 		(assert-equal? (beginify `(+ 1 2) ) `(+ 1 2))
 		(assert-equal? (beginify `(+ 1 2) `(+ 3 4) ) `(begin (+ 1 2) (+ 3 4)))
 	)
+
+	(define-test test-make-const-table
+		(assert-equal? (make-const-table '(1 2 3)) `((1 1 (T_INTEGER 1))  (3 2 (T_INTEGER 2))  (5 3 (T_INTEGER 3))))
+		(assert-equal? (make-const-table '(1 "a" 3)) `((1 1 (T_INTEGER 1)) (3 "a" (T_STRING 1 97)) (6 3 (T_INTEGER 3))))
+		(assert-equal? (make-const-table '(1 "abc" 3)) `((1 1 (T_INTEGER 1)) (3 "abc" (T_STRING 3 97 98 99)) (6 3 (T_INTEGER 3))))
+	)
 )
 
 
