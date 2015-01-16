@@ -775,13 +775,19 @@
 		(f (filter (lambda (x) (not (null? x))) exp) (get-initial-const-tbl) 7))))
 
 
-(define topo-sort (lambda (exp) 
+(define topo-sort (lambda  (exp) 
 	(let ((constant-list-before-sort   (remove-duplicates (const-list-getter (test exp))))) 
 		  (cond ((null? constant-list-before-sort) '())
-		   		((list? (car constant-list-before-sort))(car (map foo constant-list-before-sort)))
-				(else (map (lambda(e)(car (foo e))) constant-list-before-sort))))))
-										 
+		   		(else (append-list (map (lambda(exp)(if (list? exp)(foo exp)(car (foo exp)))) constant-list-before-sort)))))))
+	
+	
+(define (append-list x)							 
 
+	(if (and (^const? (car x)) (pair? (cdr x))(list? (cadr x)))
+	(append (list (car x))(cadr x))
+		(if (and (pair? x ) (list? (car x)))
+			(car x)
+		x)))
 
 (define foo
   (lambda(e)	
