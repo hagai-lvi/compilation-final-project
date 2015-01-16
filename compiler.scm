@@ -414,7 +414,7 @@
 		  ((boolean? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
 		  ((null? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
 		  ((symbol? exp)(string-append "MAKE_SYMBOL(" (symbol->string exp )");"  nl))
-
+		  ((list? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
 		  (else exp))	
 	)))
 
@@ -567,7 +567,7 @@
 ;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
 (if (null? input-text)
 	'()
-(cons (make-const-table (topo-sort (car input-text)))
+(cons (topo-sort (car input-text))
 (get-constant-table (cdr input-text))))))
 
 (define copy-const-table-to-memory (trace-lambda copy-const(table index) 
@@ -586,7 +586,7 @@
 (define (flatten x)
     (cond ((null? x) '())
           ((not (pair? x)) (list x))
-          (else (append (flatten (car x))
+          (else (append (car x)
                         (flatten (cdr x))))))
 
 (define (compile-scheme-file input output)
@@ -594,7 +594,7 @@
 			(output-file (open-output-file output 'replace))
 			(input-file  (open-input-file input))
 			(input-text  (read-whole-file-by-token input-file))
-			(const-table (car (get-constant-table input-text)))
+			(const-table  (make-const-table (reverse (remove-duplicates (reverse (flatten (get-constant-table input-text)))))))
 			
 		)
 		(begin 
@@ -747,7 +747,7 @@
 ; )
 (define make-const-table
 	(letrec ((f
-	(lambda (exp current-list counter)
+	(trace-lambda make-const-table(exp current-list counter)
 		(if (null? exp)
 			current-list
 			(let (	(e (car exp))
@@ -756,7 +756,7 @@
 		 		 		((number? e)
 		 		 			(f rest `(,@current-list (,counter ,e (T_INTEGER ,e))) (+ counter 2)))
 		 		 		((char? e)
-		 		 			(f rest `(,@current-list (,counter ,e (T_CHAR ,e))) (+ counter 2)))
+		 		 			(f rest `(,@current-list (,counter ,e (T_CHAR ,(char->integer e)))) (+ counter 2)))
 		 		 		((symbol? e)
 		 		 			(f rest `(,@current-list (,counter ,e (T_SYMBOL ,e))) (+ counter 2)))
 		 		 		((and (boolean? e) e)
@@ -771,7 +771,7 @@
 		 		 				(f rest `(,@current-list (,counter ,e (T_PAIR ,the-car ,the-cdr))) (+ counter 3 ))))
 		 		 		(else 'fail))))))) ; TODO exception? error?
 	(lambda (exp)
-		(f exp (get-initial-const-tbl) 7))))
+		(f (filter (lambda (x) (not (null? x))) exp) (get-initial-const-tbl) 7))))
 
 
 (define topo-sort (trace-lambda topo-sort(exp) 
@@ -785,7 +785,7 @@
 (define foo
   (lambda(e)	
     (cond
-      ((or (number? e) (string? e) (null? e))`(,e))
+      ((or (number? e) (char? e)(string? e) (null? e))`(,e))
       ((pair? e)
        `( ,@(foo (car e)) ,@(foo (cdr e) ),e))
        ((vector? e)
@@ -797,9 +797,9 @@
        )))
 
 (define const-list-getter 
-	(lambda(exp)
+	(trace-lambda const-getter(exp)
 	(cond
-		((or (null? exp)(symbol? exp))`(,@(list)))
+		((or (null? exp)(symbol? exp)(tagged-with 'pvar exp)(tagged-with 'bvar exp))`(,@(list)))
 		((tagged-with 'const exp)(with exp (lambda(name constr) (if (or (null? constr)(boolean? constr)(void? exp)) `(,@(list))  `(,constr)))))
 		(else `(,@(const-list-getter  (car exp)) ,@(const-list-getter  (cdr exp)))))))
 
