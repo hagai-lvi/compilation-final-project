@@ -407,14 +407,12 @@
 (define (code-gen-const e const-table)
 	(with e (trace-lambda const(const exp)
 	(cond ((number? exp)(if (integer? exp)
-							(string-append "MOV(RO,("(number->string (memory-getter exp const-table))"));" nl )
+							(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl )
 							(string-append (string->chars (number->string exp) "MAKE_SOB_NUMBER") )))
-		  ((string? exp)(string->chars exp "MAKE_SOB_STRING"))
-		  ((char? exp)(string-append "MAKE_CHAR(" (number->string (char->integer exp))  ");" nl))
-		  ((boolean? exp)(if (equal? #f exp)
-						(string-append "MAKE_BOOL(SOB_BOOLEAN_FALSE);" nl)
-		  				(string-append "MAKE_BOOL(SOB_BOOLEAN_TRUE);" nl)))
-		  ((null? exp)(string-append "CALL(MAKE_SOB_NIL);"  nl))
+		  ((string? exp)	(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
+		  ((char? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
+		  ((boolean? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
+		  ((null? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
 		  ((symbol? exp)(string-append "MAKE_SYMBOL(" (symbol->string exp )");"  nl))
 
 		  (else exp))	
@@ -574,14 +572,15 @@
 
 (define copy-const-table-to-memory (trace-lambda copy-const(table index) 
 (if (null? table)
-	(string-append "//END OF memory allocation " nl)
-(string-append 
-	(let* ((exp (car table))
+	(string-append "//END OF memory allocation " nl) 
+  (let* 
+  	((exp (car table))
 	(e (if (number? exp)
 		(number->string exp)
-		exp)))
-	"MOV(IND(" (number->string index) "),IMM(" exp) "));" nl
-(copy-const-table-to-memory (cdr table) (+ index 1))))))
+		(symbol->string exp))))
+	(string-append  "MOV(IND(" (number->string index) ") , IMM(" e "));" nl
+(copy-const-table-to-memory (cdr table) (+ index 1)))
+	))))
 
 
 (define (flatten x)
@@ -786,9 +785,9 @@
 
 (define topo-sort (trace-lambda topo-sort(exp) 
 	(let ((constant-list-before-sort   (remove-duplicates (const-list-getter (test exp))))) 
-		  (if (list? (car constant-list-before-sort))	
-				(car (map foo constant-list-before-sort))
-				(map (lambda(e)(car (foo e))) constant-list-before-sort)))))
+		  (cond ((null? constant-list-before-sort) '())
+		   		((list? (car constant-list-before-sort))(car (map foo constant-list-before-sort)))
+				(else (map (lambda(e)(car (foo e))) constant-list-before-sort))))))
 										 
 
 
