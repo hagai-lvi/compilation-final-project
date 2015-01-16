@@ -57,3 +57,38 @@
 (define get-ascii-list
 	(lambda (str)
 		(map char->integer (string->list str))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Accessors for the constants table
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define get-const-location
+	(lambda (const const-table)
+		(cond	((null? const-table) #f)
+				((equal? const (get-const-table-row-representation (car const-table)) )
+					(get-const-table-row-mem-location (car const-table)))
+				(else (get-const-location const (cdr const-table) ))
+					)))
+
+(define get-const-table-row-mem-location
+	(lambda (const-table-row)
+		(car const-table-row)))
+
+(define get-const-table-row-representation
+	(lambda (const-table-row)
+		(cadr const-table-row)))
+
+(define get-const-table-row-value
+	(lambda (const-table-row)
+		(caddr const-table-row)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; an initial constants tbl that will include void, nill, #t and #f
+(define get-initial-const-tbl
+	(lambda()
+	`(	(1 ,*void-object* (T_VOID))
+		(2 () (T_NIL))
+		(3 #f (T_BOOL 0))
+		(5 #t (T_BOOL 1))
+		)))

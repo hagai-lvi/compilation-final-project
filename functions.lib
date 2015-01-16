@@ -594,7 +594,7 @@ MINUS:
   MINUS_UNARY:
   MOV(R0,SCMARG(0)); //get the arg
   GET_INTEGER;
-  MOV(R1, 0);
+  MOV(R1, IMM(0));
   SUB(R1,R0);
   MOV(R0,R1);
   JUMP(MINUS_FINISH);
@@ -627,3 +627,57 @@ MULTIPLY:
   MAKE_INTEGER(R0);
   POP(FP);
   RETURN;
+
+DIV:
+  PUSH(FP);
+  MOV(FP,SP);
+  CMP(0,SCMNARGS);
+  JUMP_NE(DIV_CONTINUE);
+
+  printf("Exception: incorrect argument count in call (/)\n" ); //TODO need to change the printf
+  POP(FP);
+  JUMP(l_NOT_VALID_ARGUMENTS);
+
+  DIV_CONTINUE:
+  CMP(1,SCMNARGS);
+  JUMP_EQ(DIV_UNARY);
+
+  //DIV_REGULAR:
+  MOV(R0,SCMARG(0)); // init result
+  GET_INTEGER;
+  MOV(R1,R0); //Now we have the value of the first arg in R1
+  //Iterate over arguments and add them to the result
+  MOV(R2,1); //i=1
+  L_DIV_LOOP :
+  CMP(R2, SCMNARGS); //number of args
+  JUMP_EQ(L_DIV_EXIT_LOOP);
+  // Actual code for division
+  MOV(R0,SCMARG(R2)); //get arg to R0
+  GET_INTEGER;
+  CMP(R0,IMM(0)); // check for division by zero
+  JUMP_EQ(DIV_BY_ZERO);
+  DIV(R1,R0);
+  // end actual code for addition
+  INCR(R2); //++i
+  JUMP(L_DIV_LOOP); // another iteration
+  L_DIV_EXIT_LOOP : //end of for loop
+  MOV(R0,R1);
+  JUMP(DIV_FINISH);
+
+  DIV_UNARY:
+  MOV(R0,SCMARG(0)); //get the arg
+  GET_INTEGER;
+  MOV(R1, IMM(1));
+  DIV(R1,R0);
+  MOV(R0,R1);
+  JUMP(DIV_FINISH);
+
+  DIV_FINISH:
+  MAKE_INTEGER(R0);
+  POP(FP);
+  RETURN;
+
+DIV_BY_ZERO:
+  printf("Exception: division by zero" ); //TODO need to change the printf
+  POP(FP);
+  JUMP(l_NOT_VALID_ARGUMENTS);

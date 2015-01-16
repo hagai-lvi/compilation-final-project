@@ -57,9 +57,28 @@
 	)
 
 	(define-test test-make-const-table
-		(assert-equal? (make-const-table '(1 2 3)) `((1 1 (T_INTEGER 1))  (3 2 (T_INTEGER 2))  (5 3 (T_INTEGER 3))))
-		(assert-equal? (make-const-table '(1 "a" 3)) `((1 1 (T_INTEGER 1)) (3 "a" (T_STRING 1 97)) (6 3 (T_INTEGER 3))))
-		(assert-equal? (make-const-table '(1 "abc" 3)) `((1 1 (T_INTEGER 1)) (3 "abc" (T_STRING 3 97 98 99)) (6 3 (T_INTEGER 3))))
+		(assert-equal? (make-const-table '(1 2 3))
+			`( ,@(get-initial-const-tbl) (7 1 (T_INTEGER 1)) (9 2 (T_INTEGER 2))  (11 3 (T_INTEGER 3))))
+
+		(assert-equal? (make-const-table '(1 "a" 3))
+			`( ,@(get-initial-const-tbl) (7 1 (T_INTEGER 1)) (9 "a" (T_STRING 1 97)) (12 3 (T_INTEGER 3))))
+
+		(assert-equal? (make-const-table '(1 "abc" 3))
+			`( ,@(get-initial-const-tbl) (7 1 (T_INTEGER 1)) (9 "abc" (T_STRING 3 97 98 99)) (14 3 (T_INTEGER 3))))
+	)
+
+	(define-test test-get-const-location
+		(assert-equal?	(get-const-location 1 (make-const-table '(1 2 3)))
+						7)
+
+		(assert-equal?	(get-const-location 2 (make-const-table '(1 2 3)))
+						9)
+
+		(assert-equal?	(get-const-location "2" (make-const-table '(1 "2" 3)))
+						9)
+
+		(assert-equal?	(get-const-location "abc" (make-const-table '(1 2 "a" "abc" 3)))
+						14)
 	)
 )
 
