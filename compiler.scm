@@ -690,7 +690,7 @@
 (define ^label-tp-applic-exit-loop (^^label "L_tp_applic_exit_loop"))
 (define (code-gen-tp-applic e const-table env-depth)
 	(with e (lambda (name operator params)
-	(let* ((params-code (gen-code-params (reverse params) env-depth))
+	(let* ((params-code (gen-code-params (reverse params) const-table env-depth))
 			(proc-code (code-gen operator const-table env-depth))
 			(loop_label (^label-tp-applic-loop))
 			(loop_label_exit (^label-tp-applic-exit-loop )))
