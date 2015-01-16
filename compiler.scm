@@ -624,7 +624,7 @@
 				(lambda-uid (string-append "lambda-" (getUID))))
 		(string-append
 			"// Starting code-gen for " lambda-uid nl
-			"MOV(R3, IMM(" env-depth ")); // env depth" nl
+			"MOV(R3, IMM(" (number->string env-depth) ")); // env depth" nl
 			"PUSH(R3); // store env size" nl
 			"CALL(MALLOC); // allocate mem for new env" nl
 			"DROP(IMM(1));" nl
