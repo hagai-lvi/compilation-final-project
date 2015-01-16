@@ -755,7 +755,7 @@
 		 		 		((and (boolean? e) (not e))
 		 		 			(f rest `(,@current-list (,counter ,e (T_BOOL 0))) (+ counter 2)))
 		 		 		((string? e)
-		 		 			(f rest `(,@current-list (,counter ,e (T_STRING ,(string-length e) ,e))) (+ counter 3 )))
+		 		 			(f rest `(,@current-list (,counter ,e (T_STRING ,(string-length e) ,@(get-ascii-list e)))) (+ counter 3 )))
 		 		 		(else 'fail)))) ; TODO exception? error?
 		)))
 	(lambda (exp)
