@@ -723,3 +723,33 @@
 				"JUMPA((INDD(R0 , IMM(2)))); // jump to code label" nl
 				
 			)))))
+
+;get a topological sorted list of constants and creates the constants table that looks like this:
+; (	(1 	#<void> (t_void))
+;	(2 	()		(t_nil))
+;	...
+; )
+(define make-const-table
+	(letrec ((f
+	(lambda (exp current-list counter)
+		(if (null? exp)
+			current-list
+			(let (	(e (car exp))
+		 			(rest (cdr exp)))
+		 			(cond
+		 		 		((number? e)
+		 		 			(f rest `(,@current-list (,counter ,e (T_INTEGER ,e))) (+ counter 2)))
+		 		 		((char? e)
+		 		 			(f rest `(,@current-list (,counter ,e (T_CHAR ,e))) (+ counter 2)))
+		 		 		((symbol? e)
+		 		 			(f rest `(,@current-list (,counter ,e (T_SYMBOL ,e))) (+ counter 2)))
+		 		 		((and (boolean? e) e)
+		 		 			(f rest `(,@current-list (,counter ,e (T_BOOL 1))) (+ counter 2)))
+		 		 		((and (boolean? e) (not e))
+		 		 			(f rest `(,@current-list (,counter ,e (T_BOOL 0))) (+ counter 2)))
+		 		 		((string? e)
+		 		 			(f rest `(,@current-list (,counter ,e (T_STRING ,(string-length e) ,e))) (+ counter 3 )))
+		 		 		(else 'fail)))) ; TODO exception? error?
+		)))
+	(lambda (exp)
+		(f exp '() 1))))
