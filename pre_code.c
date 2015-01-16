@@ -9,7 +9,7 @@ int main()
 {
   START_MACHINE;
 
-  
+ADD(IND(0),1000);
 //empty env
 PUSH(IMM(1));
 CALL(MALLOC);
