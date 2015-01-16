@@ -756,13 +756,13 @@
 		 		 			(f rest `(,@current-list (,counter ,e (T_BOOL 0))) (+ counter 2)))
 		 		 		((string? e)
 		 		 			(f rest `(,@current-list (,counter ,e (T_STRING ,(string-length e) ,@(get-ascii-list e)))) (+ counter 2 (string-length e))))
-		 		 		;((pair? e)
-		 		 		;	(let (	(the-car (get-cons-location (car e)))
-		 		 		;			(the-cdr (get-cons-location (cdr e))))
-		 		 		;		(f rest `(,@current-list (,counter ,e (T_PAIR ,the-car ,the-cdr))) (+ counter 3 ))))
+		 		 		((pair? e)
+		 		 			(let (	(the-car (get-const-location (car e) current-list))
+		 		 					(the-cdr (get-const-location (cdr e) current-list)))
+		 		 				(f rest `(,@current-list (,counter ,e (T_PAIR ,the-car ,the-cdr))) (+ counter 3 ))))
 		 		 		(else 'fail))))))) ; TODO exception? error?
 	(lambda (exp)
-		(f exp (get-initial-const-list) 1))))
+		(f exp (get-initial-const-tbl) 7))))
 
 
 (define topo-sort (trace-lambda topo-sort(exp) 
