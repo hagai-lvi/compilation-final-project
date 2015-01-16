@@ -681,3 +681,18 @@ DIV_BY_ZERO:
   printf("Exception: division by zero" ); //TODO need to change the printf
   POP(FP);
   JUMP(l_NOT_VALID_ARGUMENTS);
+
+
+ZERO:
+  PUSH(FP);
+  MOV(FP,SP);
+  MOV(R0,SCMARG(0));
+  CMP(INDD(R0,1),IMM(0));
+  JUMP_EQ(PUT_ZERO);
+  MOV(R0,IMM(3));
+  JUMP(ZERO_EXIT);
+  PUT_ZERO:
+  MOV(R0,IMM(5));
+  ZERO_EXIT:
+  POP(FP);
+  RETURN;
