@@ -371,12 +371,12 @@
 
 (define ^label-if3exit (^^label "Lif3exit"))
 
-(define code-gen-if3 (lambda (e)
+(define code-gen-if3 (lambda (e const-table)
 		(with e	(lambda (if3 test do-if-true do-if-false)
-					(let ((code-test (code-gen test))
-						(code-dit (code-gen do-if-true))
-						(code-dif (code-gen do-if-false))
-						(label-else (^label-if3else))
+					(let ((code-test (code-gen test const-table))
+						(code-dit (code-gen do-if-true const-table))
+						(code-dif (code-gen do-if-false const-table))
+						(label-else (^label-if3else ))
 						(label-exit (^label-if3exit)))
 					(string-append
 						code-test nl ; when run, the result of the test will be in R0
@@ -407,7 +407,7 @@
 (define (code-gen-const e const-table)
 	(with e (trace-lambda const(const exp)
 	(cond ((number? exp)(if (integer? exp)
-							(string-append "PUSH(IMM("(memory-getter exp const-table)"));" nl )
+							(string-append "MOV(RO,("(number->string (memory-getter exp const-table))"));" nl )
 							(string-append (string->chars (number->string exp) "MAKE_SOB_NUMBER") )))
 		  ((string? exp)(string->chars exp "MAKE_SOB_STRING"))
 		  ((char? exp)(string-append "MAKE_CHAR(" (number->string (char->integer exp))  ");" nl))
@@ -433,15 +433,15 @@
 	(string-append "MOV_BVAR(" (number->string i) "," (number->string j) ");" nl)
 	)))
 
-(define gen-code-params (lambda (params) 
+(define gen-code-params (lambda (params const-table) 
 					(if (null? params)
 						(string-append "//end of params" nl )	
-						(string-append (code-gen (car params))  "PUSH(R0); " nl  ( gen-code-params  (cdr params))))))
+						(string-append (code-gen (car params) const-table)  "PUSH(R0); " nl  ( gen-code-params  (cdr params) const-table )))))
 
-(define (code-gen-applic e)
+(define (code-gen-applic e const-table)
 	(with e (lambda (name operator params)
-	(let* ((params-code (gen-code-params (reverse params)))
-			(proc-code (code-gen operator)))
+	(let* ((params-code (gen-code-params (reverse params) const-table))
+			(proc-code (code-gen operator const-table)))
 			(string-append params-code	
 				"PUSH(IMM("(number->string (length params))"));" nl
 				"//**************proc code**********" nl	proc-code "//**************proc code**********" nl
@@ -455,7 +455,7 @@
 				"DROP(IMM(R1)); //remove all" nl
 			)))))
 
-(define (code-gen-fvar e)
+(define (code-gen-fvar e const-table)
 	(with e 
 		(lambda(name op)
 			(cond
@@ -485,17 +485,17 @@
 		)
 	)
 )
-(define (code-gen e const-table)
-	(cond ((tagged-with 'const e)(code-gen-const e))
-	 	((tagged-with 'if3 e)(code-gen-if3 e))
-	 	((tagged-with 'pvar e)(code-gen-pvar e))
-	 	((tagged-with 'bvar e)(code-gen-bvar e))
-	 	((tagged-with 'applic e)(code-gen-applic e))
-	 	((tagged-with 'tc-applic e)(code-gen-applic e))
-		((tagged-with 'fvar e)(code-gen-fvar e))
-		((tagged-with 'lambda-simple e)(code-gen-lambda e))
+(define code-gen (trace-lambda code-gen(e const-table)
+	(cond ((tagged-with 'const e)(code-gen-const e const-table))
+	 	((tagged-with 'if3 e)(code-gen-if3 e const-table))
+	 	((tagged-with 'pvar e)(code-gen-pvar e const-table))
+	 	((tagged-with 'bvar e)(code-gen-bvar e const-table))
+	 	((tagged-with 'applic e)(code-gen-applic e const-table))
+	 	((tagged-with 'tc-applic e)(code-gen-applic e const-table))
+		((tagged-with 'fvar e)(code-gen-fvar e const-table))
+		((tagged-with 'lambda-simple e)(code-gen-lambda e const-table))
 										
-	(else e)))
+	(else e))))
 
 
 (define call-with-input-file
@@ -552,24 +552,36 @@
 (define (create-imports-macros-end)
 (call-with-input-file "post_code.c" read-whole-file-by-char)) 
 
-(define code-gen-text (trace-lambda text(input-text)
+(define code-gen-text (trace-lambda code-gentext (input-text const-table)
 ;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
 (if (null? input-text)
 	(string-append "")
-(string-append (code-gen (test (car input-text)))
+(string-append (code-gen (test (car input-text)) const-table)
 	"PUSH(R0);" nl
 "CALL(WRITE_SOB);" nl
 "CALL(NEWLINE);" nl 
 "//END OF FIRST INPUT********************************************" nl
-(code-gen-text (cdr input-text) )))))
+(code-gen-text (cdr input-text) const-table)))))
 
 
 (define get-constant-table (lambda(input-text)
 ;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
 (if (null? input-text)
 	'()
-(cons (make-const-table (topo-sort (test (car input-text))))
+(cons (make-const-table (topo-sort (car input-text)))
 (get-constant-table (cdr input-text))))))
+
+(define copy-const-table-to-memory (trace-lambda copy-const(table index) 
+(if (null? table)
+	(string-append "//END OF memory allocation " nl)
+(string-append 
+	(let* ((exp (car table))
+	(e (if (number? exp)
+		(number->string exp)
+		exp)))
+	"MOV(IND(" (number->string index) "),IMM(" exp) "));" nl
+(copy-const-table-to-memory (cdr table) (+ index 1))))))
+
 
 
 (define (compile-scheme-file input output)
@@ -577,11 +589,12 @@
 			(output-file (open-output-file output 'replace))
 			(input-file  (open-input-file input))
 			(input-text  (read-whole-file-by-token input-file))
-			(const-table (get-constant-table input-text))
+			(const-table (car (get-constant-table input-text)))
 			
 		)
 		(begin 
 			(display (create-imports-macros-begining)  output-file)
+			(display (copy-const-table-to-memory (map caddr const-table) 1)  output-file)
 			(display (code-gen-text  input-text const-table) output-file)
 			(display  (create-imports-macros-end)  output-file)
 			(close-output-port output-file)
@@ -763,16 +776,11 @@
 
 
 (define topo-sort (trace-lambda topo-sort(exp) 
-	(let ((e  (map (trace-lambda what(e)(let ((final-exp (foo e)))
-										(if (and (not (null? final-exp))(null? (cdr final-exp)))
-											(car final-exp)
-											final-exp)))
-										 (remove-duplicates (const-list-getter exp)))))
-								(if (null? e)
-									e
-								(if (null? (cdr e))
-									(remove-duplicates (car e))
-									(remove-duplicates e))))))
+	(let ((constant-list-before-sort   (remove-duplicates (const-list-getter (test exp))))) 
+		  (if (list? (car constant-list-before-sort))	
+				(car (map foo constant-list-before-sort))
+				(map (lambda(e)(car (foo e))) constant-list-before-sort)))))
+										 
 
 
 (define foo
@@ -810,7 +818,7 @@
 
 
 (define get-expression-of-variable
-  (lambda get-exp(mems values value)
+  (trace-lambda get-exp(mems values value)
               (cond ((null? values)
               	'error-not-found)
               	((equal? (car values) value)
