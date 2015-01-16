@@ -87,8 +87,8 @@
 ; an initial constants tbl that will include void, nill, #t and #f
 (define get-initial-const-tbl
 	(lambda()
-	`(	(1 #<void> (T_VOID))
+	`(	(1 *void-object* (T_VOID))
 		(2 () (T_NIL))
 		(3 #f (T_BOOL 0))
-		(3 #t (T_BOOL 1))
+		(5 #t (T_BOOL 1))
 		)))
