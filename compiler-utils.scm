@@ -51,3 +51,9 @@
 
 (define (get-opt-lambda-mandatory-args x) (car x))
 (define (get-opt-lambda-optional-args x) (cdr x))
+
+;get a string and return a list of the ascii numbers that are representing the chars in the string
+; i.e. (get-ascii-list "abc") returns (97 98 99)
+(define get-ascii-list
+	(lambda (str)
+		(map char->integer (string->list str))))
