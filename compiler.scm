@@ -371,11 +371,11 @@
 
 (define ^label-if3exit (^^label "Lif3exit"))
 
-(define code-gen-if3 (lambda (e const-table)
+(define code-gen-if3 (lambda (e const-table env-depth)
 		(with e	(lambda (if3 test do-if-true do-if-false)
-					(let ((code-test (code-gen test const-table))
-						(code-dit (code-gen do-if-true const-table))
-						(code-dif (code-gen do-if-false const-table))
+					(let ((code-test (code-gen test const-table env-depth))
+						(code-dit (code-gen do-if-true const-table env-depth))
+						(code-dif (code-gen do-if-false const-table env-depth))
 						(label-else (^label-if3else ))
 						(label-exit (^label-if3exit)))
 					(string-append
@@ -404,7 +404,7 @@
 
 
 
-(define (code-gen-const e const-table)
+(define (code-gen-const e const-table env-depth)
 	(with e (trace-lambda const(const exp)
 	(cond ((number? exp)(if (integer? exp)
 							(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl )
@@ -421,25 +421,25 @@
 	
 
 
-(define (code-gen-pvar e)
+(define (code-gen-pvar e const-table env-depth)
 	(with e (lambda(pvar var index)
 	(string-append "MOV_PVAR(" (number->string index) ");" nl)
 	)))
 
-(define (code-gen-bvar e)
+(define (code-gen-bvar e const-table env-depth)
 	(with e (lambda(name var i j)
 	(string-append "MOV_BVAR(" (number->string i) "," (number->string j) ");" nl)
 	)))
 
-(define gen-code-params (lambda (params const-table) 
+(define gen-code-params (lambda (params const-table env-depth)
 					(if (null? params)
 						(string-append "//end of params" nl )	
-						(string-append (code-gen (car params) const-table)  "PUSH(R0); " nl  ( gen-code-params  (cdr params) const-table )))))
+						(string-append (code-gen (car params) const-table env-depth)  "PUSH(R0); " nl  ( gen-code-params  (cdr params) const-table env-depth)))))
 
-(define (code-gen-applic e const-table)
+(define (code-gen-applic e const-table env-depth)
 	(with e (lambda (name operator params)
-	(let* ((params-code (gen-code-params (reverse params) const-table))
-			(proc-code (code-gen operator const-table)))
+	(let* ((params-code (gen-code-params (reverse params) const-table env-depth))
+			(proc-code (code-gen operator const-table env-depth)))
 			(string-append params-code	
 				"PUSH(IMM("(number->string (length params))"));" nl
 				"//**************proc code**********" nl	proc-code "//**************proc code**********" nl
@@ -453,7 +453,7 @@
 				"DROP(IMM(R1)); //remove all" nl
 			)))))
 
-(define (code-gen-fvar e const-table)
+(define (code-gen-fvar e const-table env-depth)
 	(with e 
 		(lambda(name op)
 			(cond
@@ -484,15 +484,15 @@
 		)
 	)
 )
-(define code-gen (trace-lambda code-gen(e const-table)
-	(cond ((tagged-with 'const e)(code-gen-const e const-table))
-	 	((tagged-with 'if3 e)(code-gen-if3 e const-table))
-	 	((tagged-with 'pvar e)(code-gen-pvar e const-table))
-	 	((tagged-with 'bvar e)(code-gen-bvar e const-table))
-	 	((tagged-with 'applic e)(code-gen-applic e const-table))
-	 	((tagged-with 'tc-applic e)(code-gen-applic e const-table))
-		((tagged-with 'fvar e)(code-gen-fvar e const-table))
-		((tagged-with 'lambda-simple e)(code-gen-lambda e const-table))
+(define code-gen (trace-lambda code-gen(e const-table env-depth)
+	(cond ((tagged-with 'const e)(code-gen-const e const-table env-depth))
+	 	((tagged-with 'if3 e)(code-gen-if3 e const-table env-depth))
+	 	((tagged-with 'pvar e)(code-gen-pvar e const-table env-depth))
+	 	((tagged-with 'bvar e)(code-gen-bvar e const-table env-depth))
+	 	((tagged-with 'applic e)(code-gen-applic e const-table env-depth))
+	 	((tagged-with 'tc-applic e)(code-gen-applic e const-table env-depth))
+		((tagged-with 'fvar e)(code-gen-fvar e const-table env-depth))
+		((tagged-with 'lambda-simple e)(code-gen-lambda e const-table env-depth))
 										
 	(else e))))
 
@@ -555,7 +555,7 @@
 ;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
 (if (null? input-text)
 	(string-append "")
-(string-append (code-gen (test (car input-text)) const-table)
+(string-append (code-gen (test (car input-text)) const-table 0)
 	"PUSH(R0);" nl
 "CALL(WRITE_SOB);" nl
 "CALL(NEWLINE);" nl 
@@ -612,7 +612,7 @@
 (define ^label-lambda-exit-loop (^^label "L_lambda_exit_loop"))
 ;
 (define code-gen-lambda
-	(lambda (e)
+	(lambda (e const-table env-depth)
 		(let* (	(vars (cadr e))
 				(body (caddr e))
 				(label-copy-old-env (^label-lambda-copy-old-env))
@@ -624,7 +624,7 @@
 				(lambda-uid (string-append "lambda-" (getUID))))
 		(string-append
 			"// Starting code-gen for " lambda-uid nl
-			(code-for-env-size "R3") nl
+			"MOV(R3, IMM(" env-depth ")); // env depth" nl
 			"PUSH(R3); // store env size" nl
 			"CALL(MALLOC); // allocate mem for new env" nl
 			"DROP(IMM(1));" nl
@@ -674,7 +674,7 @@
 			nl
 			"// Here starts the code of the actual lambda " lambda-uid nl
 			nl
-			(code-gen body)
+			(code-gen body const-table (+ 1 env-depth))
 			nl
 			"// Here ends the code of the actual lambda " lambda-uid nl
 			nl
@@ -684,22 +684,13 @@
 
 		))))
 
-; This function creates code for storing the ENV's size
-; to the desired register
-; TODO
-(define code-for-env-size
-	(lambda (target-rgstr)
-		(string-append
-			"MOV(" target-rgstr ", IMM(20)); // Arbitraty value for now" nl
-			"// TODO code-for-env-size"
-		)
-	))
+
 (define ^label-tp-applic-loop (^^label "L_tp_applic_loop"))
 (define ^label-tp-applic-exit-loop (^^label "L_tp_applic_exit_loop"))
-(define (code-gen-tp-applic e)
+(define (code-gen-tp-applic e const-table env-depth)
 	(with e (lambda (name operator params)
-	(let* ((params-code (gen-code-params(reverse params)))
-			(proc-code (code-gen operator))
+	(let* ((params-code (gen-code-params (reverse params) env-depth))
+			(proc-code (code-gen operator const-table env-depth))
 			(loop_label (^label-tp-applic-loop))
 			(loop_label_exit (^label-tp-applic-exit-loop )))
 			(string-append params-code	
