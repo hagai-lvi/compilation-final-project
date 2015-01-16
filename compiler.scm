@@ -380,7 +380,7 @@
 						(label-exit (^label-if3exit)))
 					(string-append
 						code-test nl ; when run, the result of the test will be in R0
-						"CMP(R0, SOB_BOOLEAN_FALSE);" nl
+						"CMP(INDD(R0,1), SOB_BOOLEAN_FALSE);" nl
 						"JUMP_EQ(" label-else ");" nl
 						code-dit nl
 						"JUMP(" label-exit ");" nl
@@ -405,7 +405,7 @@
 
 
 (define (code-gen-const e const-table env-depth)
-	(with e (trace-lambda const(const exp)
+	(with e (lambda (const exp)
 	(cond ((number? exp)(if (integer? exp)
 							(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl )
 							(string-append (string->chars (number->string exp) "MAKE_SOB_NUMBER") )))
@@ -466,6 +466,7 @@
 				((equal? op 'char?)(string-append "MAKE_CLOSURE(IS_CHAR);" nl))
 				((equal? op 'vector?)(string-append "MAKE_CLOSURE(IS_VECTOR);" nl))
 				((equal? op 'symbol?)(string-append "MAKE_CLOSURE(IS_SYMBOL);" nl))	
+				((equal? op 'zero?)(string-append "MAKE_CLOSURE(ZERO);" nl))	
 				((equal? op 'pair?)(string-append "MAKE_CLOSURE(IS_PAIR);" nl))	
 				((equal? op 'procedure?)(string-append "MAKE_CLOSURE(IS_PROC);" nl))	
 				((equal? op 'make-string)(string-append "MAKE_CLOSURE(MAKE_STRING);" nl))
@@ -484,7 +485,7 @@
 		)
 	)
 )
-(define code-gen (trace-lambda code-gen(e const-table env-depth)
+(define code-gen (lambda (e const-table env-depth)
 	(cond ((tagged-with 'const e)(code-gen-const e const-table env-depth))
 	 	((tagged-with 'if3 e)(code-gen-if3 e const-table env-depth))
 	 	((tagged-with 'pvar e)(code-gen-pvar e const-table env-depth))
@@ -551,7 +552,7 @@
 (define (create-imports-macros-end)
 (call-with-input-file "post_code.c" read-whole-file-by-char)) 
 
-(define code-gen-text (trace-lambda code-gentext (input-text const-table)
+(define code-gen-text (lambda (input-text const-table)
 ;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
 (if (null? input-text)
 	(string-append "")
@@ -570,7 +571,7 @@
 (cons (topo-sort (car input-text))
 (get-constant-table (cdr input-text))))))
 
-(define copy-const-table-to-memory (trace-lambda copy-const(table index) 
+(define copy-const-table-to-memory (lambda (table index) 
 (if (null? table)
 	(string-append "//END OF memory allocation " nl) 
   (let* 
@@ -747,13 +748,13 @@
 ; )
 (define make-const-table
 	(letrec ((f
-	(trace-lambda make-const-table(exp current-list counter)
+	(lambda (exp current-list counter)
 		(if (null? exp)
 			current-list
 			(let (	(e (car exp))
 		 			(rest (cdr exp)))
 		 			(cond
-		 		 		((number? e)
+		 		 		((integer? e)
 		 		 			(f rest `(,@current-list (,counter ,e (T_INTEGER ,e))) (+ counter 2)))
 		 		 		((char? e)
 		 		 			(f rest `(,@current-list (,counter ,e (T_CHAR ,(char->integer e)))) (+ counter 2)))
@@ -774,7 +775,7 @@
 		(f (filter (lambda (x) (not (null? x))) exp) (get-initial-const-tbl) 7))))
 
 
-(define topo-sort (trace-lambda topo-sort(exp) 
+(define topo-sort (lambda (exp) 
 	(let ((constant-list-before-sort   (remove-duplicates (const-list-getter (test exp))))) 
 		  (cond ((null? constant-list-before-sort) '())
 		   		((list? (car constant-list-before-sort))(car (map foo constant-list-before-sort)))
@@ -797,7 +798,7 @@
        )))
 
 (define const-list-getter 
-	(trace-lambda const-getter(exp)
+	(lambda (exp)
 	(cond
 		((or (null? exp)(symbol? exp)(tagged-with 'pvar exp)(tagged-with 'bvar exp))`(,@(list)))
 		((tagged-with 'const exp)(with exp (lambda(name constr) (if (or (null? constr)(boolean? constr)(void? exp)) `(,@(list))  `(,constr)))))
@@ -817,7 +818,7 @@
 
 
 (define get-expression-of-variable
-  (trace-lambda get-exp(mems values value)
+  (lambda(mems values value)
               (cond ((null? values)
               	'error-not-found)
               	((equal? (car values) value)
