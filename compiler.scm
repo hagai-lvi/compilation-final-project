@@ -404,10 +404,10 @@
 
 
 
-(define (code-gen-const e)
-	(with e (lambda(const exp)
+(define (code-gen-const e const-table)
+	(with e (trace-lambda const(const exp)
 	(cond ((number? exp)(if (integer? exp)
-							(string-append "PUSH(IMM("(get-expression-of-variable exp )");" nl )
+							(string-append "PUSH(IMM("(memory-getter exp const-table)"));" nl )
 							(string-append (string->chars (number->string exp) "MAKE_SOB_NUMBER") )))
 		  ((string? exp)(string->chars exp "MAKE_SOB_STRING"))
 		  ((char? exp)(string-append "MAKE_CHAR(" (number->string (char->integer exp))  ");" nl))
@@ -485,7 +485,7 @@
 		)
 	)
 )
-(define (code-gen e)
+(define (code-gen e const-table)
 	(cond ((tagged-with 'const e)(code-gen-const e))
 	 	((tagged-with 'if3 e)(code-gen-if3 e))
 	 	((tagged-with 'pvar e)(code-gen-pvar e))
@@ -552,7 +552,7 @@
 (define (create-imports-macros-end)
 (call-with-input-file "post_code.c" read-whole-file-by-char)) 
 
-(define code-gen-text (lambda(input-text)
+(define code-gen-text (trace-lambda text(input-text)
 ;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
 (if (null? input-text)
 	(string-append "")
@@ -564,6 +564,12 @@
 (code-gen-text (cdr input-text) )))))
 
 
+(define get-constant-table (lambda(input-text)
+;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
+(if (null? input-text)
+	'()
+(cons (make-const-table (topo-sort (test (car input-text))))
+(get-constant-table (cdr input-text))))))
 
 
 (define (compile-scheme-file input output)
@@ -571,11 +577,12 @@
 			(output-file (open-output-file output 'replace))
 			(input-file  (open-input-file input))
 			(input-text  (read-whole-file-by-token input-file))
+			(const-table (get-constant-table input-text))
 			
 		)
 		(begin 
 			(display (create-imports-macros-begining)  output-file)
-			(display (code-gen-text  input-text ) output-file)
+			(display (code-gen-text  input-text const-table) output-file)
 			(display  (create-imports-macros-end)  output-file)
 			(close-output-port output-file)
 		)))
@@ -724,9 +731,38 @@
 				
 			)))))
 
+;get a topological sorted list of constants and creates the constants table that looks like this:
+; (	(1 	#<void> (t_void))
+;	(2 	()		(t_nil))
+;	...
+; )
+(define make-const-table
+	(letrec ((f
+	(lambda (exp current-list counter)
+		(if (null? exp)
+			current-list
+			(let (	(e (car exp))
+		 			(rest (cdr exp)))
+		 			(cond
+		 		 		((number? e)
+		 		 			(f rest `(,@current-list (,counter ,e (T_INTEGER ,e))) (+ counter 2)))
+		 		 		((char? e)
+		 		 			(f rest `(,@current-list (,counter ,e (T_CHAR ,e))) (+ counter 2)))
+		 		 		((symbol? e)
+		 		 			(f rest `(,@current-list (,counter ,e (T_SYMBOL ,e))) (+ counter 2)))
+		 		 		((and (boolean? e) e)
+		 		 			(f rest `(,@current-list (,counter ,e (T_BOOL 1))) (+ counter 2)))
+		 		 		((and (boolean? e) (not e))
+		 		 			(f rest `(,@current-list (,counter ,e (T_BOOL 0))) (+ counter 2)))
+		 		 		((string? e)
+		 		 			(f rest `(,@current-list (,counter ,e (T_STRING ,(string-length e) ,e))) (+ counter 3 )))
+		 		 		(else 'fail)))) ; TODO exception? error?
+		)))
+	(lambda (exp)
+		(f exp '() 1))))
 
 
-(define topo-sort (lambda(exp) 
+(define topo-sort (trace-lambda topo-sort(exp) 
 	(let ((e  (map (trace-lambda what(e)(let ((final-exp (foo e)))
 										(if (and (not (null? final-exp))(null? (cdr final-exp)))
 											(car final-exp)
@@ -770,10 +806,6 @@
          (cons (car l) (remove-duplicates (cdr l))))))
 
 
-(define const-dictionary '((1 2 (32322 2))
-							(3 3 (32322 3))
-							(5 (3 2) (323232 3 1))))
-
 (define memory-getter (lambda(value dic)(get-expression-of-variable (map car dic)(map cadr dic) value)))
 
 
@@ -784,5 +816,3 @@
               	((equal? (car values) value)
               		(car mems))
               	(else (get-expression-of-variable (cdr mems)(cdr values) value)))))
-
-    
