@@ -654,6 +654,8 @@ DIV:
   // Actual code for division
   MOV(R0,SCMARG(R2)); //get arg to R0
   GET_INTEGER;
+  CMP(R0,IMM(0)); // check for division by zero
+  JUMP_EQ(DIV_BY_ZERO);
   DIV(R1,R0);
   // end actual code for addition
   INCR(R2); //++i
@@ -675,3 +677,7 @@ DIV:
   POP(FP);
   RETURN;
 
+DIV_BY_ZERO:
+  printf("Exception: division by zero" ); //TODO need to change the printf
+  POP(FP);
+  JUMP(l_NOT_VALID_ARGUMENTS);
