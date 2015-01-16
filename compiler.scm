@@ -407,7 +407,7 @@
 (define (code-gen-const e)
 	(with e (lambda(const exp)
 	(cond ((number? exp)(if (integer? exp)
-							(string-append "MAKE_INTEGER("(number->string exp)");" nl )
+							(string-append "PUSH(IMM("(get-expression-of-variable exp )");" nl )
 							(string-append (string->chars (number->string exp) "MAKE_SOB_NUMBER") )))
 		  ((string? exp)(string->chars exp "MAKE_SOB_STRING"))
 		  ((char? exp)(string-append "MAKE_CHAR(" (number->string (char->integer exp))  ");" nl))
@@ -727,16 +727,22 @@
 
 
 (define topo-sort (lambda(exp) 
-	(let ((e  (map foo (remove-duplicates (const-list-getter exp)))))
+	(let ((e  (map (trace-lambda what(e)(let ((final-exp (foo e)))
+										(if (and (not (null? final-exp))(null? (cdr final-exp)))
+											(car final-exp)
+											final-exp)))
+										 (remove-duplicates (const-list-getter exp)))))
 								(if (null? e)
 									e
-								(remove-duplicates (car e))))))
+								(if (null? (cdr e))
+									(remove-duplicates (car e))
+									(remove-duplicates e))))))
 
 
 (define foo
-  (trace-lambda foo(e)
+  (lambda(e)	
     (cond
-      ((or (number? e) (string? e) (null? e))  `(,e))
+      ((or (number? e) (string? e) (null? e))`(,e))
       ((pair? e)
        `( ,@(foo (car e)) ,@(foo (cdr e) ),e))
        ((vector? e)
@@ -748,7 +754,7 @@
        )))
 
 (define const-list-getter 
-	(trace-lambda getter (exp)
+	(lambda(exp)
 	(cond
 		((or (null? exp)(symbol? exp))`(,@(list)))
 		((tagged-with 'const exp)(with exp (lambda(name constr) (if (or (null? constr)(boolean? constr)(void? exp)) `(,@(list))  `(,constr)))))
@@ -762,3 +768,21 @@
          (remove-duplicates (cdr l)))
         (else
          (cons (car l) (remove-duplicates (cdr l))))))
+
+
+(define const-dictionary '((1 2 (32322 2))
+							(3 3 (32322 3))
+							(5 (3 2) (323232 3 1))))
+
+(define memory-getter (lambda(value dic)(get-expression-of-variable (map car dic)(map cadr dic) value)))
+
+
+(define get-expression-of-variable
+  (lambda get-exp(mems values value)
+              (cond ((null? values)
+              	'error-not-found)
+              	((equal? (car values) value)
+              		(car mems))
+              	(else (get-expression-of-variable (cdr mems)(cdr values) value)))))
+
+    
