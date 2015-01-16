@@ -583,6 +583,11 @@
 (copy-const-table-to-memory (cdr table) (+ index 1))))))
 
 
+(define (flatten x)
+    (cond ((null? x) '())
+          ((not (pair? x)) (list x))
+          (else (append (flatten (car x))
+                        (flatten (cdr x))))))
 
 (define (compile-scheme-file input output)
 	(let* (
@@ -594,7 +599,7 @@
 		)
 		(begin 
 			(display (create-imports-macros-begining)  output-file)
-			(display (copy-const-table-to-memory (map caddr const-table) 1)  output-file)
+			(display (copy-const-table-to-memory (flatten (map append (map caddr const-table)))  1)  output-file)
 			(display (code-gen-text  input-text const-table) output-file)
 			(display  (create-imports-macros-end)  output-file)
 			(close-output-port output-file)
