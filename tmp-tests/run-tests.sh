@@ -92,6 +92,7 @@ do
 
 		$verbose && echo "Deleting c output file"
 		rm -rf "$f.out"
+		echo "${passed}/${total} passed"
 	fi
 done
 
