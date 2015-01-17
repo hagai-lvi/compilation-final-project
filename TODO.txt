@@ -1,20 +1,23 @@
 Not-assigned:
 handle Fvars
-implement more predicates
-
-
+symbol
+string->symbol
+symbol? 
+ symbol->string
+ define
 ______________________________________________________________
 Ilya:
 code-gen-applic
 code-gen-var (Bvar and Pvar)
 predicates:
-	boolean?
-	vector?
-	string?
 	number?
-	char?
-
-
+	eq?
+	integer->char
+	 null?
+	 string-length 
+	 string-ref 
+	 string-set!
+	 sequance
 ______________________________________________________________
 Hagai:
 code-gen-simple-lambda (will be modified later to variadic and opt)
@@ -22,4 +25,13 @@ code-gen-plus
 code-gen-minus
 code-gen-mult
 code-gen-div
-add testing framework
+lambda-variadic
+lambda-opt
+or
+
+apply
+< (variadic)
+> (variadic)
+= (variadic)
+
+ remainder 
