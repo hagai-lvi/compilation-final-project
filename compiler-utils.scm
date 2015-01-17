@@ -1,4 +1,7 @@
 
+(define with (lambda (s f)
+					(apply f s)))
+
 (define tagged-with
 	(lambda (tag exp)
 		(eq? tag (car exp))))
