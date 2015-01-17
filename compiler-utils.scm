@@ -95,6 +95,7 @@
 
 (define nl (list->string (list #\newline)))
 
+;used for reading c macros
 (define read-whole-file-by-char
   (lambda (p)
    (letrec (
@@ -103,3 +104,13 @@
    			'()
    		(cons x (f (read-char p)))))))
 	(f (read-char p)))))
+
+;used for reading scheme input
+(define read-whole-file-by-token
+  (lambda (p)
+   (letrec (
+   	(f (lambda (x)
+   		(if (eof-object? x)
+   			'()
+   		(cons x (f (read p)))))))
+	(f (read p)))))

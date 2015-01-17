@@ -522,27 +522,9 @@
 ;   			(write-whole-file (p (cdr l)))))))
 
 
-;used for reading c macros
-(define nl (list->string (list #\newline)))
 
-(define read-whole-file-by-char
-  (lambda (p)
-   (letrec (
-   	(f (lambda (x)
-   		(if (eof-object? x)
-   			'()
-   		(cons x (f (read-char p)))))))
-	(f (read-char p)))))
 
-;used for reading scheme input
-(define read-whole-file-by-token
-  (lambda (p)
-   (letrec (
-   	(f (lambda (x)
-   		(if (eof-object? x)
-   			'()
-   		(cons x (f (read p)))))))
-	(f (read p)))))
+
 
 
 (define (create-imports-macros-begining)
@@ -554,22 +536,23 @@
 
 (define code-gen-text (lambda (input-text const-table)
 ;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
-(if (null? input-text)
-	(string-append "")
-(string-append (code-gen (test (car input-text)) const-table 0)
-	"PUSH(R0);" nl
-"CALL(WRITE_SOB);" nl
-"CALL(NEWLINE);" nl 
-"//END OF FIRST INPUT********************************************" nl
-(code-gen-text (cdr input-text) const-table)))))
+	(if (null? input-text)
+		(string-append "")
+		(string-append
+			(code-gen (test (car input-text)) const-table 0)
+			"PUSH(R0);" nl
+			"CALL(WRITE_SOB);" nl
+			"CALL(NEWLINE);" nl 
+			"//END OF FIRST INPUT********************************************" nl
+			(code-gen-text (cdr input-text) const-table)))))
 
 
 (define get-constant-table (lambda(input-text)
 ;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
-(if (null? input-text)
-	'()
-(cons (topo-sort (car input-text))
-(get-constant-table (cdr input-text))))))
+	(if (null? input-text)
+		'()
+		(cons 	(topo-sort (car input-text))
+				(get-constant-table (cdr input-text))))))
 
 (define copy-const-table-to-memory (lambda (table index) 
 (if (null? table)
