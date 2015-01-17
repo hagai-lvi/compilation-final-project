@@ -92,3 +92,14 @@
 		(3 #f (T_BOOL 0))
 		(5 #t (T_BOOL 1))
 		)))
+
+(define nl (list->string (list #\newline)))
+
+(define read-whole-file-by-char
+  (lambda (p)
+   (letrec (
+   	(f (lambda (x)
+   		(if (eof-object? x)
+   			'()
+   		(cons x (f (read-char p)))))))
+	(f (read-char p)))))
