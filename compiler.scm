@@ -546,11 +546,11 @@
 
 
 (define (create-imports-macros-begining)
-(call-with-input-file "pre_code.c" read-whole-file-by-char)) 
+(call-with-input-file "resources/pre_code.c" read-whole-file-by-char)) 
 
 
 (define (create-imports-macros-end)
-(call-with-input-file "post_code.c" read-whole-file-by-char)) 
+(call-with-input-file "resources/post_code.c" read-whole-file-by-char)) 
 
 (define code-gen-text (lambda (input-text const-table)
 ;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
