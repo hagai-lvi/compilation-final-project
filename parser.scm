@@ -7,6 +7,7 @@
 			(char? x)
 			(number? x)
 			(string? x)
+			(void? x)
 			))
 
 (define (var? x)
@@ -248,7 +249,7 @@
 	(define (treverse pe bound-list)
 		(cond 
 			((null? pe) pe)
-			((or (^const? pe)(symbol? pe))pe)
+			((or (^const? pe)(symbol? pe)(vector? pe))pe)
 			((and (pair? pe)(eq? (car pe) 'lambda-simple))
 				(cons 
 					(treverse (car pe) (add-list (cadr pe) bound-list))

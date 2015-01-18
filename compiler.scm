@@ -65,6 +65,8 @@
 		  ((null? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
 		  ((symbol? exp)(string-append "MAKE_SYMBOL(" (symbol->string exp )");"  nl))
 		  ((list? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
+		  ((void? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
+		  ((vector? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
 		  (else exp))	
 	)))
 
@@ -110,6 +112,7 @@
 				((equal? op 'cons)(string-append "MAKE_CLOSURE(CONS);" nl))
 				((equal? op 'car)(string-append "MAKE_CLOSURE(CAR);" nl))
 				((equal? op 'cdr)(string-append "MAKE_CLOSURE(CDR);" nl))
+				((equal? op 'eq?)(string-append "MAKE_CLOSURE(EQ);" nl))	
 				((equal? op 'boolean?)(string-append "MAKE_CLOSURE(IS_BOOL);" nl))	
 				((equal? op 'integer?)(string-append "MAKE_CLOSURE(IS_INTEGER);" nl))
 				((equal? op 'number?)(string-append "MAKE_CLOSURE(IS_NUMBER);" nl))
@@ -382,7 +385,7 @@
 ; )
 (define make-const-table
 	(letrec ((f
-	(lambda (exp current-list counter)
+	(trace-lambda const-table(exp current-list counter)
 		(if (null? exp)
 			current-list
 			(let (	(e (car exp))
@@ -404,15 +407,19 @@
 		 		 			(let (	(the-car (get-const-location (car e) current-list))
 		 		 					(the-cdr (get-const-location (cdr e) current-list)))
 		 		 				(f rest `(,@current-list (,counter ,e (T_PAIR ,the-car ,the-cdr))) (+ counter 3 ))))
+		 		 		((vector? e)
+		 		 			(let ((locations (map (trace-lambda mem-location(expr)(get-const-location expr current-list)) (vector->list  e )))
+		 		 					(vec-length (vector-length e)))
+		 		 				(f rest `(,@current-list (,counter ,e (T_VECTOR ,vec-length ,@locations))) (+ counter vec-length 2))))
 		 		 		(else 'fail))))))) ; TODO exception? error?
 	(lambda (exp)
 		(f (filter (lambda (x) (not (null? x))) exp) (get-initial-const-tbl) 7))))
 
 
-(define topo-sort (lambda  (exp) 
+(define topo-sort (trace-lambda  topo-sort(exp) 
 	(let ((constant-list-before-sort   (remove-duplicates (const-list-getter (test exp))))) 
 		  (cond ((null? constant-list-before-sort) '())
-		   		(else (append-list (map (lambda(exp)(if (list? exp)(foo exp)(car (foo exp)))) constant-list-before-sort)))))))
+		   		(else (apply append (map (lambda(exp)(foo exp)) constant-list-before-sort)))))))
 	
 	
 (define (append-list x)							 
@@ -424,7 +431,7 @@
 		x)))
 
 (define foo
-  (lambda(e)	
+  (trace-lambda foo(e)	
     (cond
       ((or (number? e) (char? e)(string? e) (null? e))`(,e))
       ((pair? e)
@@ -438,10 +445,10 @@
        )))
 
 (define const-list-getter 
-	(lambda (exp)
+	(trace-lambda const-geter(exp)
 	(cond
 		((or (null? exp)(symbol? exp)(tagged-with 'pvar exp)(tagged-with 'bvar exp))`(,@(list)))
-		((tagged-with 'const exp)(with exp (lambda(name constr) (if (or (null? constr)(boolean? constr)(void? exp)) `(,@(list))  `(,constr)))))
+		((tagged-with 'const exp)(with exp (lambda(name constr) (if (or (null? constr)(boolean? constr)(void? constr)) `(,@(list))  `(,constr)))))
 		(else `(,@(const-list-getter  (car exp)) ,@(const-list-getter  (cdr exp)))))))
 
 
