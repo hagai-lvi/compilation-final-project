@@ -385,7 +385,7 @@
 ; )
 (define make-const-table
 	(letrec ((f
-	(trace-lambda const-table(exp current-list counter)
+	(lambda(exp current-list counter)
 		(if (null? exp)
 			current-list
 			(let (	(e (car exp))
@@ -408,7 +408,7 @@
 		 		 					(the-cdr (get-const-location (cdr e) current-list)))
 		 		 				(f rest `(,@current-list (,counter ,e (T_PAIR ,the-car ,the-cdr))) (+ counter 3 ))))
 		 		 		((vector? e)
-		 		 			(let ((locations (map (trace-lambda mem-location(expr)(get-const-location expr current-list)) (vector->list  e )))
+		 		 			(let ((locations (map (lambda(expr)(get-const-location expr current-list)) (vector->list  e )))
 		 		 					(vec-length (vector-length e)))
 		 		 				(f rest `(,@current-list (,counter ,e (T_VECTOR ,vec-length ,@locations))) (+ counter vec-length 2))))
 		 		 		(else 'fail))))))) ; TODO exception? error?
@@ -416,7 +416,7 @@
 		(f (filter (lambda (x) (not (null? x))) exp) (get-initial-const-tbl) 7))))
 
 
-(define topo-sort (trace-lambda  topo-sort(exp) 
+(define topo-sort (lambda(exp) 
 	(let ((constant-list-before-sort   (remove-duplicates (const-list-getter (test exp))))) 
 		  (cond ((null? constant-list-before-sort) '())
 		   		(else (apply append (map (lambda(exp)(foo exp)) constant-list-before-sort)))))))
@@ -431,7 +431,7 @@
 		x)))
 
 (define foo
-  (trace-lambda foo(e)	
+  (lambda (e)	
     (cond
       ((or (number? e) (char? e)(string? e) (null? e))`(,e))
       ((pair? e)
@@ -445,7 +445,7 @@
        )))
 
 (define const-list-getter 
-	(trace-lambda const-geter(exp)
+	(lambda (exp)
 	(cond
 		((or (null? exp)(symbol? exp)(tagged-with 'pvar exp)(tagged-with 'bvar exp))`(,@(list)))
 		((tagged-with 'const exp)(with exp (lambda(name constr) (if (or (null? constr)(boolean? constr)(void? constr)) `(,@(list))  `(,constr)))))
