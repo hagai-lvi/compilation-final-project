@@ -112,6 +112,7 @@
 				((equal? op 'cdr)(string-append "MAKE_CLOSURE(CDR);" nl))
 				((equal? op 'boolean?)(string-append "MAKE_CLOSURE(IS_BOOL);" nl))	
 				((equal? op 'integer?)(string-append "MAKE_CLOSURE(IS_INTEGER);" nl))
+				((equal? op 'number?)(string-append "MAKE_CLOSURE(IS_NUMBER);" nl))
 				((equal? op 'string?)(string-append "MAKE_CLOSURE(IS_STRING);" nl))
 				((equal? op 'char?)(string-append "MAKE_CLOSURE(IS_CHAR);" nl))
 				((equal? op 'vector?)(string-append "MAKE_CLOSURE(IS_VECTOR);" nl))
