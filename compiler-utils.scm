@@ -1,4 +1,14 @@
 
+(define *reserved-words*
+  '(and begin cond define do else if lambda
+    let let* letrec or quasiquote unquote 
+    unquote-splicing quote set!))
+
+
+
+(define *void-object* (void))
+(define (void? exp)(equal? *void-object* exp))
+
 (define with (lambda (s f)
 					(apply f s)))
 
@@ -6,6 +16,13 @@
 	(lambda (tag exp)
 		(eq? tag (car exp))))
 
+
+; Create a uniquw string id
+(define getUID
+		(let ((n 0))
+			(lambda ()
+				(set! n (+ n 1))
+			(number->string n))))
 
 (define (id x) x)
 
