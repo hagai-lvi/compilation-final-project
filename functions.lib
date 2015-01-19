@@ -536,7 +536,7 @@ PLUS:
   //Iterate over arguments and add them to the result
   MOV(R1,0); //i=0
   L_PLUS_LOOP :
-  CMP(R1, SCMNARGS); //number of args TODO get from the stack
+  CMP(R1, SCMNARGS); //number of args
   JUMP_EQ(L_PLUS_EXIT_LOOP);
   // Actual code for addition
   PUSH(R0); //backup
@@ -680,6 +680,63 @@ DIV_BY_ZERO:
   printf("Exception: division by zero" ); //TODO need to change the printf
   POP(FP);
   JUMP(l_NOT_VALID_ARGUMENTS);
+
+// return in R0 1 if (R1 > R0), 0 otherwise
+BINARY_BIGGER_THAN:
+  CMP(R1,R0);
+  JUMP_GT (BINARY_BIGGER_THAN_TRUE);
+  JUMP (BINARY_BIGGER_THAN_FALSE);
+
+  BINARY_BIGGER_THAN_TRUE:
+  MOV(R0,1);
+  RETURN;
+  BINARY_BIGGER_THAN_FALSE:
+  MOV(R0,0);
+  RETURN;
+  
+
+BIGGER_THAN: // variadic >
+  PUSH(FP);
+  MOV(FP,SP);
+  CMP(0,SCMNARGS);
+  JUMP_EQ(BIGGER_THAN_INCORRECT_ARGUMENT_COUNT);
+
+  MOV(R3, 1); // initial res is true
+  MOV(R2, 1); // i=1;
+  MOV(R0, SCMARG(0)); //get first arg
+  GET_INTEGER;
+  
+  BIGGER_THAN_LOOP:
+  CMP(R2, SCMNARGS);
+  JUMP_EQ (BIGGER_THAN_FINISH);
+  MOV(R1,R0);
+  MOV(R0, SCMARG(R2));
+  GET_INTEGER;
+  PUSH(R0);
+  PUSH(R1);
+  CALL(BINARY_BIGGER_THAN);
+  AND(R3,R0);
+  POP(R1);
+  POP(R0);
+  INCR(R2);
+  JUMP (BIGGER_THAN_LOOP);
+
+
+  BIGGER_THAN_INCORRECT_ARGUMENT_COUNT:
+  printf("incorrect argument count in call (>)\n"); //TODO don't use printf
+  POP(FP);
+  JUMP(l_NOT_VALID_ARGUMENTS);
+
+  BIGGER_THAN_NOT_A_NUMBER_ERROR:
+  //TODO print the illegal argument
+  printf("Got a non number argument to >\n"); //TODO don't use printf
+  POP(FP);
+  JUMP(l_NOT_VALID_ARGUMENTS);
+
+  BIGGER_THAN_FINISH:
+  MAKE_BOOL(R3);
+  POP(FP);
+  RETURN;
 
 
 ZERO:
