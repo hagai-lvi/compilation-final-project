@@ -134,3 +134,14 @@
    			'()
    		(cons x (f (read p)))))))
 	(f (read p)))))
+
+; get a non-null list and return all the args but the last
+(define all-but-last
+	(lambda (list)
+		(let* (	(reversed (reverse list)))
+			(reverse (cdr reversed))
+				)))
+; get a non null list and return the last element
+(define last-element
+	(lambda (list)
+		(car (reverse list))))
