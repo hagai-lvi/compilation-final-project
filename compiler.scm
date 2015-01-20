@@ -136,6 +136,7 @@
 				((equal? op '* )(string-append "MAKE_CLOSURE(MULTIPLY);" nl))
 				((equal? op '/ )(string-append "MAKE_CLOSURE(DIV);" nl))
 				((equal? op '> )(string-append "MAKE_CLOSURE(BIGGER_THAN);" nl))
+				((equal? op '< )(string-append "MAKE_CLOSURE(LESS_THAN);" nl))
 			(else op))
 		)
 	)
