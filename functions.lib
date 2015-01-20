@@ -795,6 +795,64 @@ LESS_THAN: // variadic <
   POP(FP);
   RETURN;
 
+BINARY_NUMBER_EQUALS:
+// return in R0 1 if (R1 = R0), 0 otherwise
+  CMP(R1,R0);
+  JUMP_EQ (BINARY_NUMBER_EQUALS_TRUE);
+  JUMP (BINARY_NUMBER_EQUALS_FALSE);
+
+  BINARY_NUMBER_EQUALS_TRUE:
+  MOV(R0,1);
+  RETURN;
+  BINARY_NUMBER_EQUALS_FALSE:
+  MOV(R0,0);
+  RETURN;
+
+NUMBER_EQUALS: //variadic =
+  PUSH(FP);
+  MOV(FP,SP);
+
+  CMP(0,SCMNARGS);
+  JUMP_EQ(NUMBER_EQUALS_INCORRECT_ARGUMENT_COUNT);
+
+  MOV(R3, 1); // initial res is true
+  MOV(R2, 1); // i=1;
+  MOV(R0, SCMARG(0)); //get first arg
+  GET_INTEGER;
+
+  NUMBER_EQUALS_LOOP:
+  CMP(R2, SCMNARGS);
+  JUMP_EQ (NUMBER_EQUALS_FINISH);
+  MOV(R1,R0);
+  MOV(R0, SCMARG(R2));
+  GET_INTEGER;
+  PUSH(R0);
+  PUSH(R1);
+  CALL(BINARY_NUMBER_EQUALS);
+  AND(R3,R0);
+  POP(R1);
+  POP(R0);
+  INCR(R2);
+  JUMP (NUMBER_EQUALS_LOOP);
+
+
+  NUMBER_EQUALS_INCORRECT_ARGUMENT_COUNT:
+  printf("incorrect argument count in call (=)\n"); //TODO don't use printf
+  POP(FP);
+  JUMP(l_NOT_VALID_ARGUMENTS);
+
+  NUMBER_EQUALS_NOT_A_NUMBER_ERROR:
+  //TODO print the illegal argument
+  printf("Got a non number argument to =\n"); //TODO don't use printf
+  POP(FP);
+  JUMP(l_NOT_VALID_ARGUMENTS);
+
+  NUMBER_EQUALS_FINISH:
+  MAKE_BOOL(R3);
+  POP(FP);
+  RETURN;
+
+
 ZERO:
   PUSH(FP);
   MOV(FP,SP);
