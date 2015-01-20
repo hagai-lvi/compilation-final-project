@@ -1,4 +1,5 @@
 (load "compiler-utils.scm")
+(load "pattern-matcher.scm")
 (load "parser_expansions.scm")
 
 
