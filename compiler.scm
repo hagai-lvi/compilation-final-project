@@ -105,7 +105,7 @@
 				"DROP(IMM(R1)); //remove all" nl
 			)))))
 
-(define (code-gen-fvar e const-table env-depth)
+(define code-gen-fvar (lambda (e const-table env-depth)
 	(with e 
 		(lambda(name op)
 			(cond
@@ -143,10 +143,7 @@
 				((equal? op '> )(string-append "MAKE_CLOSURE(BIGGER_THAN);" nl))
 				((equal? op '< )(string-append "MAKE_CLOSURE(LESS_THAN);" nl))
 				((equal? op '= )(string-append "MAKE_CLOSURE(NUMBER_EQUALS);" nl))
-			(else op))
-		)
-	)
-)
+			(else (error 'code-gen-fvar "Can't generate code for ~s" `(,name ,op))))))))
 
 
 (define code-gen-seq (lambda (e const-table env-depth)
@@ -164,9 +161,37 @@
 		((tagged-with 'fvar e)(code-gen-fvar e const-table env-depth))
 		((tagged-with 'lambda-simple e)(code-gen-lambda e const-table env-depth))
 		((tagged-with 'seq e)(code-gen-seq e const-table env-depth))
+		((tagged-with 'or e)(code-gen-or e const-table env-depth))
 		
 										
 	(else e))))
+
+(define ^label-or-exit (^^label "L_OR_EXIT"))
+(define code-gen-or
+	(lambda (e const-table env-depth)
+		(with	e
+				(lambda (or args)
+					(let* (	(code-gen-args (map (lambda (e) (code-gen e const-table env-depth)) args))
+							(abl (all-but-last code-gen-args))
+							(code-for-last (last-element code-gen-args))
+							(label-or-exit (^label-or-exit))
+							(code-for-all-but-last (map
+														(lambda(e)
+															(string-append
+																e nl
+																"CMP(R0, SOB_FALSE);" nl
+																"JUMP_NE(" label-or-exit ");" nl)) 
+														abl)))
+						(string-append
+							"// Starting code-gen for OR" nl
+							(apply string-append code-for-all-but-last)
+							code-for-last
+							label-or-exit ":" nl
+
+							)
+
+
+					)))))
 
 
 (define call-with-input-file
