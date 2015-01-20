@@ -7,17 +7,8 @@ symbol?
  define
 ______________________________________________________________
 Ilya:
-code-gen-applic
-code-gen-var (Bvar and Pvar)
 predicates:
-	number?
-	eq?
-	integer->char
-	null?
-	string-length 
-	string-ref 
-	string-set!
-	sequance
+DONE
 ______________________________________________________________
 Hagai:
 code-gen-simple-lambda (will be modified later to variadic and opt)

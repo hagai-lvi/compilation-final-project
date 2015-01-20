@@ -112,7 +112,8 @@
 				((equal? op 'cons)(string-append "MAKE_CLOSURE(CONS);" nl))
 				((equal? op 'car)(string-append "MAKE_CLOSURE(CAR);" nl))
 				((equal? op 'cdr)(string-append "MAKE_CLOSURE(CDR);" nl))
-				((equal? op 'eq?)(string-append "MAKE_CLOSURE(EQ);" nl))	
+				((equal? op 'eq?)(string-append "MAKE_CLOSURE(EQ);" nl))
+				((equal? op 'null?)(string-append "MAKE_CLOSURE(IS_NULL);" nl))	
 				((equal? op 'boolean?)(string-append "MAKE_CLOSURE(IS_BOOL);" nl))	
 				((equal? op 'integer?)(string-append "MAKE_CLOSURE(IS_INTEGER);" nl))
 				((equal? op 'number?)(string-append "MAKE_CLOSURE(IS_NUMBER);" nl))
@@ -125,10 +126,14 @@
 				((equal? op 'procedure?)(string-append "MAKE_CLOSURE(IS_PROC);" nl))	
 				((equal? op 'make-string)(string-append "MAKE_CLOSURE(MAKE_STRING);" nl))
 				((equal? op 'char->integer)(string-append "MAKE_CLOSURE(CHAR_TO_INTEGER);" nl))
+				((equal? op 'integer->char)(string-append "MAKE_CLOSURE(INTEGER_TO_CHAR);" nl))
 				((equal? op 'make-vector)(string-append "MAKE_CLOSURE(MAKE_VECTOR);" nl))
 				((equal? op 'vector-length)(string-append "MAKE_CLOSURE(VECTOR_LENGTH);" nl))
 				((equal? op 'vector-ref)(string-append "MAKE_CLOSURE(VECTOR_REF);" nl))
 				((equal? op 'vector-set!)(string-append "MAKE_CLOSURE(VECTOR_SET);" nl))
+				((equal? op 'string-length)(string-append "MAKE_CLOSURE(STRING_LENGTH);" nl))
+				((equal? op 'string-set!)(string-append "MAKE_CLOSURE(STRING_SET);" nl))
+				((equal? op 'string-ref)(string-append "MAKE_CLOSURE(STRING_REF);" nl))					
 				((equal? op 'set-car!)(string-append "MAKE_CLOSURE(SET_CAR);" nl))
 				((equal? op 'set-cdr!)(string-append "MAKE_CLOSURE(SET_CDR);" nl))
 				((equal? op '+ )(string-append "MAKE_CLOSURE(PLUS);" nl))
@@ -142,6 +147,13 @@
 		)
 	)
 )
+
+
+(define code-gen-seq (lambda (e const-table env-depth)
+	(with e (lambda (name applications)
+	(apply string-append (map (lambda(exp)(code-gen exp const-table env-depth)) applications)
+	)))))
+
 (define code-gen (lambda (e const-table env-depth)
 	(cond ((tagged-with 'const e)(code-gen-const e const-table env-depth))
 	 	((tagged-with 'if3 e)(code-gen-if3 e const-table env-depth))
@@ -151,6 +163,8 @@
 	 	((tagged-with 'tc-applic e)(code-gen-applic e const-table env-depth))
 		((tagged-with 'fvar e)(code-gen-fvar e const-table env-depth))
 		((tagged-with 'lambda-simple e)(code-gen-lambda e const-table env-depth))
+		((tagged-with 'seq e)(code-gen-seq e const-table env-depth))
+		
 										
 	(else e))))
 
