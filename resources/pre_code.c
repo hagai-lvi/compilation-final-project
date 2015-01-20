@@ -4,7 +4,7 @@
 /* change to 1 for debug info to be printed: */
 #define DO_SHOW 1
 #include "arch/cisc.h"
-
+#define SOB_FALSE IMM(3)
 int main()
 {
   START_MACHINE;
