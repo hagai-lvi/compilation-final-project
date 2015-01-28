@@ -5,6 +5,7 @@
 #define DO_SHOW 1
 #include "arch/cisc.h"
 #define SOB_FALSE IMM(3)
+#define SOB_NIL IMM(2)
 int main()
 {
   START_MACHINE;
