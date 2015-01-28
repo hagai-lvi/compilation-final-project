@@ -89,7 +89,7 @@
 						(string-append (code-gen (car params) const-table env-depth fvar-table)  "PUSH(R0); " nl  ( gen-code-params  (cdr params) const-table env-depth fvar-table)))))
 
 (define (code-gen-applic e const-table env-depth fvar-table)
-	(with e (trace-lambda applic (name operator params)
+	(with e (lambda(name operator params)
 	(let* ((params-code (gen-code-params (reverse params) const-table env-depth fvar-table))
 			(proc-code (code-gen operator const-table env-depth fvar-table)))
 			(string-append params-code	
@@ -152,7 +152,7 @@
 	(apply string-append (map (lambda(exp)(code-gen exp const-table env-depth fvar-table)) applications)
 	)))))
 
-(define code-gen (trace-lambda code-gen (e const-table env-depth fvar-table)
+(define code-gen (lambda(e const-table env-depth fvar-table)
 	(cond ((tagged-with 'const e)(code-gen-const e const-table env-depth fvar-table))
 	 	((tagged-with 'if3 e)(code-gen-if3 e const-table env-depth fvar-table))
 	 	((tagged-with 'pvar e)(code-gen-pvar e const-table env-depth fvar-table))
@@ -232,7 +232,7 @@
 (define (create-imports-macros-end)
 (call-with-input-file "resources/post_code.c" read-whole-file-by-char)) 
 
-(define code-gen-text (trace-lambda code-gen-text (input-text const-table fvar-table)
+(define code-gen-text (lambda(input-text const-table fvar-table)
 ;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
 	(if (null? input-text)
 		(string-append "")
@@ -253,7 +253,7 @@
 				(get-constant-table (cdr input-text))))))
 
 
-(define get-fvar-table (trace-lambda text(input-text)
+(define get-fvar-table (lambda(input-text)
 ;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
 	(if (null? input-text)
 		'()
@@ -379,7 +379,7 @@
 
 
 (define (code-gen-define e const-table env-depth fvar-table)
-	(with e (trace-lambda code-gen(def name exp)
+	(with e (lambda (def name exp)
 		(let* ((value (code-gen exp const-table env-depth fvar-table))
 				(mem-loc (memory-getter (cadr name) fvar-table)))
 			(string-append value "MOV(IND(" (number->string mem-loc) "), R0);" nl 
@@ -546,7 +546,7 @@
 				(let ((initial (make-initial-fvars-table mem-location)))
 			(f fvars-list (+ mem-location (length initial)) initial)))))
 
-(define fvar-list-getter (trace-lambda fvar-getter (exp)
+(define fvar-list-getter (lambda (exp)
 	(cond
 		((or (null? exp)(symbol? exp)(tagged-with 'pvar exp)(tagged-with 'bvar exp)(tagged-with 'const exp))`(,@(list)))
 		((tagged-with 'define exp) (with exp (lambda(def name obj)`,(cdr name))))
