@@ -513,3 +513,14 @@
               	((equal? (car values) value)
               		(car mems))
               	(else (get-expression-of-variable (cdr mems)(cdr values) value)))))
+
+(define make-fvars-table
+	(letrec ((f (lambda (exp counter current-list)
+				(if	(null? exp)
+					current-list
+					(f	(cdr exp)
+						(+ 1 counter)
+						`(,@current-list (,(car exp) ,counter)))))))
+	(lambda (fvars-list mem-location)
+		(f fvars-list mem-location '())
+	)))
