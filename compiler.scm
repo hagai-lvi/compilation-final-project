@@ -522,5 +522,14 @@
 						(+ 1 counter)
 						`(,@current-list (,(car exp) ,counter)))))))
 	(lambda (fvars-list mem-location)
-		(f fvars-list mem-location '())
-	)))
+		(f fvars-list mem-location '()))))
+
+(define make-initial-fvars-table
+	(letrec ((f (lambda (processed-list not-processed-list counter)
+				(if	(null? not-processed-list)
+					processed-list
+					(f	`(,@processed-list (,(car not-processed-list) ,counter))
+						(cdr not-processed-list)
+						(+ 1 counter))))))
+	(lambda (initial-mem) 
+		(f `() initial-fvars-list initial-mem))))
