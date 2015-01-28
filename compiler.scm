@@ -489,7 +489,7 @@
 (define const-list-getter 
 	(lambda (exp)
 	(cond
-		((or (null? exp)(symbol? exp)(tagged-with 'pvar exp)(tagged-with 'bvar exp))`(,@(list)))
+		((or (null? exp)(symbol? exp)(tagged-with 'pvar exp)(tagged-with 'bvar exp)(tagged-with 'fvar exp))`(,@(list)))
 		((tagged-with 'const exp)(with exp (lambda(name constr) (if (or (null? constr)(boolean? constr)(void? constr)) `(,@(list))  `(,constr)))))
 		(else `(,@(const-list-getter  (car exp)) ,@(const-list-getter  (cdr exp)))))))
 
@@ -524,3 +524,22 @@
 	(lambda (fvars-list mem-location)
 		(f fvars-list mem-location '())
 	)))
+
+(define fvar-list-getter (lambda (exp)
+	(cond
+		((or (null? exp)(symbol? exp)(tagged-with 'pvar exp)(tagged-with 'bvar exp)(tagged-with 'const exp))`(,@(list)))
+		((tagged-with 'fvar exp)(with exp (lambda(name constr) `(,constr))))
+		(else `(,@(fvar-list-getter  (car exp)) ,@(fvar-list-getter  (cdr exp)))))))
+
+
+ (define copy-fvar-table-to-memory (lambda (table index) 
+(if (null? table)
+	(string-append "//END OF memory allocation " nl) 
+  (let* 
+  	((exp (car table))
+	(e (if (number? exp)
+		(number->string exp)
+		(symbol->string exp))))
+	(string-append  "MOV(IND(" (number->string index) ") , IMM(" e "));" nl
+(copy-const-table-to-memory (cdr table) (+ index 1)))
+	))))
