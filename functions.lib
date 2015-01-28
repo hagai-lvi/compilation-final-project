@@ -980,3 +980,39 @@ STRING_REF:
   POP(R1);
   POP(FP);
   RETURN;
+
+MAKE_LIST:
+  PUSH(FP);
+  MOV(FP, SP);
+
+  // backup registers
+  PUSH(R1);
+  PUSH(R2);
+  PUSH(R3);
+  PUSH(R4);
+  PUSH(R5);
+
+  MOV(R0, SOB_NIL);
+  MOV(R1, FPARG(0)); //number of elements in the list
+
+  MAKE_LIST_LOOP:
+  CMP(R1, IMM(0));
+  JUMP_EQ(MAKE_LIST_CONTINUE);
+  PUSH(R0);
+  PUSH(FPARG(R1));
+  CALL(MAKE_SOB_PAIR);
+  DROP(2);
+  DECR(R1);
+  JUMP(MAKE_LIST_LOOP);
+
+  MAKE_LIST_CONTINUE:
+
+  // pop baced-up registers
+  POP(R5);
+  POP(R4);
+  POP(R3);
+  POP(R2);
+  POP(R1);
+
+  POP(FP);
+  RETURN;
