@@ -153,7 +153,7 @@
 		integer->char make-vector vector-length
 		vector-ref vector-set! string-length
 		string-set! string-ref set-car! set-cdr!
-			 > < = ))
+			+ - * / > < = ))
 
 
 ; map between scheme fvar name to the compiler's fvar name
