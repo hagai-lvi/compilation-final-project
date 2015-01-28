@@ -285,7 +285,7 @@
 			(input-file  (open-input-file input))
 			(input-text  (read-whole-file-by-token input-file))
 			(const-table  (make-const-table (reverse (remove-duplicates (reverse (flatten (get-constant-table input-text)))))))
-			(fvar-start-pos (+  (caar (reverse const-table )) (length (caddr (reverse const-table) ))))
+			(fvar-start-pos (+  (caar (reverse const-table )) (length (caddar (reverse const-table) ))))
 			(fvar-init-table  (make-initial-fvars-table fvar-start-pos))
 			(fvar-table (make-fvars-table (flatten (get-fvar-table input-text)) fvar-start-pos))
 		)
