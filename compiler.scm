@@ -275,11 +275,12 @@
 			(input-file  (open-input-file input))
 			(input-text  (read-whole-file-by-token input-file))
 			(const-table  (make-const-table (reverse (remove-duplicates (reverse (flatten (get-constant-table input-text)))))))
-			
+			(fvar-init-table  (make-initial-fvars-table (caar (reverse (const-table )))))
 		)
 		(begin 
 			(display (create-imports-macros-begining)  output-file)
 			(display (copy-const-table-to-memory (flatten (map append (map caddr const-table)))  1)  output-file)
+			(dipllay (copy-fvar-table-to-memory (flatten (map append (map cadd fvar-init-table)))))
 			(display (code-gen-text  input-text const-table) output-file)
 			(display  (create-imports-macros-end)  output-file)
 			(close-output-port output-file)
@@ -540,6 +541,16 @@
 	(e (if (number? exp)
 		(number->string exp)
 		(symbol->string exp))))
-	(string-append  "MOV(IND(" (number->string index) ") , IMM(" e "));" nl
-(copy-const-table-to-memory (cdr table) (+ index 1)))
+	(string-append  "MOV(IND(" (number->string index) ") , MAKE_CLOSURE(" e "));" nl
+(copy-fvar-table-to-memory (cdr table) (+ index 1)))
 	))))
+
+(define make-initial-fvars-table
+	(letrec ((f (lambda (processed-list not-processed-list counter)
+				(if	(null? not-processed-list)
+					processed-list
+					(f	`(,@processed-list (,(car not-processed-list) ,counter))
+						(cdr not-processed-list)
+						(+ 1 counter))))))
+	(lambda (initial-mem) 
+		(f `() initial-fvars-list initial-mem))))

@@ -145,3 +145,12 @@
 (define last-element
 	(lambda (list)
 		(car (reverse list))))
+
+(define initial-fvars-list
+	`(	cons car cdr eq? null? boolean? integer?
+		number? string? char? vector? symbol? zero?
+		pair? procedure? make-string char->integer
+		integer->char make-vector vector-length
+		vector-ref vector-set! string-length
+		string-set! string-ref set-car! set-cdr!
+))
