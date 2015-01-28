@@ -68,8 +68,8 @@
 	)
 
 	(define-test test-make-fvars-table
-		(assert-equal? (make-fvars-table `() 100) `() )
-		(assert-equal? (make-fvars-table `(a b c d) 100) `((a 100) (b 101) (c 102) (d 103) ) )
+		(assert-equal? (make-fvars-table `() 100) (make-initial-fvars-table 100) )
+		(assert-equal? (make-fvars-table `(a b c d) 100) `( ,@(make-initial-fvars-table 100) (130 a) (131 b) (132 c) (133 d) ) )
 	)
 
 	(define-test test-get-const-location

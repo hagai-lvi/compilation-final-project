@@ -21,11 +21,11 @@
 
 (define ^label-if3exit (^^label "Lif3exit"))
 
-(define code-gen-if3 (lambda (e const-table env-depth)
+(define code-gen-if3 (lambda (e const-table env-depth fvar-table)
 		(with e	(lambda (if3 test do-if-true do-if-false)
-					(let ((code-test (code-gen test const-table env-depth))
-						(code-dit (code-gen do-if-true const-table env-depth))
-						(code-dif (code-gen do-if-false const-table env-depth))
+					(let ((code-test (code-gen test const-table env-depth fvar-table))
+						(code-dit (code-gen do-if-true const-table env-depth fvar-table))
+						(code-dif (code-gen do-if-false const-table env-depth fvar-table))
 						(label-else (^label-if3else ))
 						(label-exit (^label-if3exit)))
 					(string-append
@@ -54,7 +54,7 @@
 
 
 
-(define (code-gen-const e const-table env-depth)
+(define (code-gen-const e const-table env-depth fvar-table)
 	(with e (lambda (const exp)
 	(cond ((number? exp)(if (integer? exp)
 							(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl )
@@ -73,25 +73,25 @@
 	
 
 
-(define (code-gen-pvar e const-table env-depth)
+(define (code-gen-pvar e const-table env-depth fvar-table)
 	(with e (lambda(pvar var index)
 	(string-append "MOV_PVAR(" (number->string index) ");" nl)
 	)))
 
-(define (code-gen-bvar e const-table env-depth)
+(define (code-gen-bvar e const-table env-depth fvar-table)
 	(with e (lambda(name var i j)
 	(string-append "MOV_BVAR(" (number->string i) "," (number->string j) ");" nl)
 	)))
 
-(define gen-code-params (lambda (params const-table env-depth)
+(define gen-code-params (lambda (params const-table env-depth fvar-table)
 					(if (null? params)
 						(string-append "//end of params" nl )	
-						(string-append (code-gen (car params) const-table env-depth)  "PUSH(R0); " nl  ( gen-code-params  (cdr params) const-table env-depth)))))
+						(string-append (code-gen (car params) const-table env-depth fvar-table)  "PUSH(R0); " nl  ( gen-code-params  (cdr params) const-table env-depth fvar-table)))))
 
-(define (code-gen-applic e const-table env-depth)
-	(with e (lambda (name operator params)
-	(let* ((params-code (gen-code-params (reverse params) const-table env-depth))
-			(proc-code (code-gen operator const-table env-depth)))
+(define (code-gen-applic e const-table env-depth fvar-table)
+	(with e (trace-lambda applic (name operator params)
+	(let* ((params-code (gen-code-params (reverse params) const-table env-depth fvar-table))
+			(proc-code (code-gen operator const-table env-depth fvar-table)))
 			(string-append params-code	
 				"PUSH(IMM("(number->string (length params))"));" nl
 				"//**************proc code**********" nl	proc-code "//**************proc code**********" nl
@@ -105,73 +105,75 @@
 				"DROP(IMM(R1)); //remove all" nl
 			)))))
 
-(define code-gen-fvar (lambda (e const-table env-depth)
+(define code-gen-fvar (lambda (e const-table env-depth fvar-table)
 	(with e 
 		(lambda(name op)
-			(cond
-				((equal? op 'cons)(string-append "MAKE_CLOSURE(CONS);" nl))
-				((equal? op 'car)(string-append "MAKE_CLOSURE(CAR);" nl))
-				((equal? op 'cdr)(string-append "MAKE_CLOSURE(CDR);" nl))
-				((equal? op 'eq?)(string-append "MAKE_CLOSURE(EQ);" nl))
-				((equal? op 'null?)(string-append "MAKE_CLOSURE(IS_NULL);" nl))	
-				((equal? op 'boolean?)(string-append "MAKE_CLOSURE(IS_BOOL);" nl))	
-				((equal? op 'integer?)(string-append "MAKE_CLOSURE(IS_INTEGER);" nl))
-				((equal? op 'number?)(string-append "MAKE_CLOSURE(IS_NUMBER);" nl))
-				((equal? op 'string?)(string-append "MAKE_CLOSURE(IS_STRING);" nl))
-				((equal? op 'char?)(string-append "MAKE_CLOSURE(IS_CHAR);" nl))
-				((equal? op 'vector?)(string-append "MAKE_CLOSURE(IS_VECTOR);" nl))
-				((equal? op 'symbol?)(string-append "MAKE_CLOSURE(IS_SYMBOL);" nl))	
-				((equal? op 'zero?)(string-append "MAKE_CLOSURE(ZERO);" nl))	
-				((equal? op 'pair?)(string-append "MAKE_CLOSURE(IS_PAIR);" nl))	
-				((equal? op 'procedure?)(string-append "MAKE_CLOSURE(IS_PROC);" nl))	
-				((equal? op 'make-string)(string-append "MAKE_CLOSURE(MAKE_STRING);" nl))
-				((equal? op 'char->integer)(string-append "MAKE_CLOSURE(CHAR_TO_INTEGER);" nl))
-				((equal? op 'integer->char)(string-append "MAKE_CLOSURE(INTEGER_TO_CHAR);" nl))
-				((equal? op 'make-vector)(string-append "MAKE_CLOSURE(MAKE_VECTOR);" nl))
-				((equal? op 'vector-length)(string-append "MAKE_CLOSURE(VECTOR_LENGTH);" nl))
-				((equal? op 'vector-ref)(string-append "MAKE_CLOSURE(VECTOR_REF);" nl))
-				((equal? op 'vector-set!)(string-append "MAKE_CLOSURE(VECTOR_SET);" nl))
-				((equal? op 'string-length)(string-append "MAKE_CLOSURE(STRING_LENGTH);" nl))
-				((equal? op 'string-set!)(string-append "MAKE_CLOSURE(STRING_SET);" nl))
-				((equal? op 'string-ref)(string-append "MAKE_CLOSURE(STRING_REF);" nl))					
-				((equal? op 'set-car!)(string-append "MAKE_CLOSURE(SET_CAR);" nl))
-				((equal? op 'set-cdr!)(string-append "MAKE_CLOSURE(SET_CDR);" nl))
-				((equal? op '+ )(string-append "MAKE_CLOSURE(PLUS);" nl))
-				((equal? op '- )(string-append "MAKE_CLOSURE(MINUS);" nl))
-				((equal? op '* )(string-append "MAKE_CLOSURE(MULTIPLY);" nl))
-				((equal? op '/ )(string-append "MAKE_CLOSURE(DIV);" nl))
-				((equal? op '> )(string-append "MAKE_CLOSURE(BIGGER_THAN);" nl))
-				((equal? op '< )(string-append "MAKE_CLOSURE(LESS_THAN);" nl))
-				((equal? op '= )(string-append "MAKE_CLOSURE(NUMBER_EQUALS);" nl))
-			(else (error 'code-gen-fvar "Can't generate code for ~s" `(,name ,op))))))))
+			(string-append "MOV(R0,IND(" (number->string (memory-getter op fvar-table)) "));" nl)))))
+			; (cond
+			; 	((equal? op 'cons)(string-append "MAKE_CLOSURE(CONS);" nl))
+			; 	((equal? op 'car)(string-append "MAKE_CLOSURE(CAR);" nl))
+			; 	((equal? op 'cdr)(string-append "MAKE_CLOSURE(CDR);" nl))
+			; 	((equal? op 'eq?)(string-append "MAKE_CLOSURE(EQ);" nl))
+			; 	((equal? op 'null?)(string-append "MAKE_CLOSURE(IS_NULL);" nl))	
+			; 	((equal? op 'boolean?)(string-append "MAKE_CLOSURE(IS_BOOL);" nl))	
+			; 	((equal? op 'integer?)(string-append "MAKE_CLOSURE(IS_INTEGER);" nl))
+			; 	((equal? op 'number?)(string-append "MAKE_CLOSURE(IS_NUMBER);" nl))
+			; 	((equal? op 'string?)(string-append "MAKE_CLOSURE(IS_STRING);" nl))
+			; 	((equal? op 'char?)(string-append "MAKE_CLOSURE(IS_CHAR);" nl))
+			; 	((equal? op 'vector?)(string-append "MAKE_CLOSURE(IS_VECTOR);" nl))
+			; 	((equal? op 'symbol?)(string-append "MAKE_CLOSURE(IS_SYMBOL);" nl))	
+			; 	((equal? op 'zero?)(string-append "MAKE_CLOSURE(ZERO);" nl))	
+			; 	((equal? op 'pair?)(string-append "MAKE_CLOSURE(IS_PAIR);" nl))	
+			; 	((equal? op 'procedure?)(string-append "MAKE_CLOSURE(IS_PROC);" nl))	
+			; 	((equal? op 'make-string)(string-append "MAKE_CLOSURE(MAKE_STRING);" nl))
+			; 	((equal? op 'char->integer)(string-append "MAKE_CLOSURE(CHAR_TO_INTEGER);" nl))
+			; 	((equal? op 'integer->char)(string-append "MAKE_CLOSURE(INTEGER_TO_CHAR);" nl))
+			; 	((equal? op 'make-vector)(string-append "MAKE_CLOSURE(MAKE_VECTOR);" nl))
+			; 	((equal? op 'vector-length)(string-append "MAKE_CLOSURE(VECTOR_LENGTH);" nl))
+			; 	((equal? op 'vector-ref)(string-append "MAKE_CLOSURE(VECTOR_REF);" nl))
+			; 	((equal? op 'vector-set!)(string-append "MAKE_CLOSURE(VECTOR_SET);" nl))
+			; 	((equal? op 'string-length)(string-append "MAKE_CLOSURE(STRING_LENGTH);" nl))
+			; 	((equal? op 'string-set!)(string-append "MAKE_CLOSURE(STRING_SET);" nl))
+			; 	((equal? op 'string-ref)(string-append "MAKE_CLOSURE(STRING_REF);" nl))					
+			; 	((equal? op 'set-car!)(string-append "MAKE_CLOSURE(SET_CAR);" nl))
+			; 	((equal? op 'set-cdr!)(string-append "MAKE_CLOSURE(SET_CDR);" nl))
+			; 	((equal? op '+ )(string-append "MAKE_CLOSURE(PLUS);" nl))
+			; 	((equal? op '- )(string-append "MAKE_CLOSURE(MINUS);" nl))
+			; 	((equal? op '* )(string-append "MAKE_CLOSURE(MULTIPLY);" nl))
+			; 	((equal? op '/ )(string-append "MAKE_CLOSURE(DIV);" nl))
+			; 	((equal? op '> )(string-append "MAKE_CLOSURE(BIGGER_THAN);" nl))
+			; 	((equal? op '< )(string-append "MAKE_CLOSURE(LESS_THAN);" nl))
+			; 	((equal? op '= )(string-append "MAKE_CLOSURE(NUMBER_EQUALS);" nl))
+			;(else (error 'code-gen-fvar "Can't generate code for ~s" `(,name ,op))))))))
 
 
-(define code-gen-seq (lambda (e const-table env-depth)
+(define code-gen-seq (lambda (e const-table env-depth fvar-table)
 	(with e (lambda (name applications)
-	(apply string-append (map (lambda(exp)(code-gen exp const-table env-depth)) applications)
+	(apply string-append (map (lambda(exp)(code-gen exp const-table env-depth fvar-table)) applications)
 	)))))
 
-(define code-gen (lambda (e const-table env-depth)
-	(cond ((tagged-with 'const e)(code-gen-const e const-table env-depth))
-	 	((tagged-with 'if3 e)(code-gen-if3 e const-table env-depth))
-	 	((tagged-with 'pvar e)(code-gen-pvar e const-table env-depth))
-	 	((tagged-with 'bvar e)(code-gen-bvar e const-table env-depth))
-	 	((tagged-with 'applic e)(code-gen-applic e const-table env-depth))
-	 	((tagged-with 'tc-applic e)(code-gen-applic e const-table env-depth))
-		((tagged-with 'fvar e)(code-gen-fvar e const-table env-depth))
-		((tagged-with 'lambda-simple e)(code-gen-lambda e const-table env-depth))
-		((tagged-with 'seq e)(code-gen-seq e const-table env-depth))
-		((tagged-with 'or e)(code-gen-or e const-table env-depth))
+(define code-gen (trace-lambda code-gen (e const-table env-depth fvar-table)
+	(cond ((tagged-with 'const e)(code-gen-const e const-table env-depth fvar-table))
+	 	((tagged-with 'if3 e)(code-gen-if3 e const-table env-depth fvar-table))
+	 	((tagged-with 'pvar e)(code-gen-pvar e const-table env-depth fvar-table))
+	 	((tagged-with 'bvar e)(code-gen-bvar e const-table env-depth fvar-table))
+	 	((tagged-with 'applic e)(code-gen-applic e const-table env-depth fvar-table))
+	 	((tagged-with 'tc-applic e)(code-gen-applic e const-table env-depth fvar-table))
+		((tagged-with 'fvar e)(code-gen-fvar e const-table env-depth fvar-table))
+		((tagged-with 'lambda-simple e)(code-gen-lambda e const-table env-depth fvar-table))
+		((tagged-with 'seq e)(code-gen-seq e const-table env-depth fvar-table))
+		((tagged-with 'or e)(code-gen-or e const-table env-depth fvar-table))
+		((tagged-with 'define e)(code-gen-define e const-table env-depth fvar-table))
 		
 										
 	(else e))))
 
 (define ^label-or-exit (^^label "L_OR_EXIT"))
 (define code-gen-or
-	(lambda (e const-table env-depth)
+	(lambda (e const-table env-depth fvar-table)
 		(with	e
 				(lambda (or args)
-					(let* (	(code-gen-args (map (lambda (e) (code-gen e const-table env-depth)) args))
+					(let* (	(code-gen-args (map (lambda (e) (code-gen e const-table env-depth fvar-table)) args))
 							(abl (all-but-last code-gen-args))
 							(code-for-last (last-element code-gen-args))
 							(label-or-exit (^label-or-exit))
@@ -230,17 +232,17 @@
 (define (create-imports-macros-end)
 (call-with-input-file "resources/post_code.c" read-whole-file-by-char)) 
 
-(define code-gen-text (lambda (input-text const-table)
+(define code-gen-text (trace-lambda code-gen-text (input-text const-table fvar-table)
 ;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
 	(if (null? input-text)
 		(string-append "")
 		(string-append
-			(code-gen (test (car input-text)) const-table 0)
+			(code-gen (test (car input-text)) const-table 0 fvar-table)
 			"PUSH(R0);" nl
 			"CALL(WRITE_SOB);" nl
 			"CALL(NEWLINE);" nl 
 			"//END OF FIRST INPUT********************************************" nl
-			(code-gen-text (cdr input-text) const-table)))))
+			(code-gen-text (cdr input-text) const-table fvar-table)))))
 
 
 (define get-constant-table (lambda(input-text)
@@ -249,6 +251,14 @@
 		'()
 		(cons 	(topo-sort (car input-text))
 				(get-constant-table (cdr input-text))))))
+
+
+(define get-fvar-table (trace-lambda text(input-text)
+;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
+	(if (null? input-text)
+		'()
+		(cons 	(fvar-list-getter (test (car input-text)))
+				(get-fvar-table (cdr input-text))))))
 
 (define copy-const-table-to-memory (lambda (table index) 
 (if (null? table)
@@ -275,13 +285,15 @@
 			(input-file  (open-input-file input))
 			(input-text  (read-whole-file-by-token input-file))
 			(const-table  (make-const-table (reverse (remove-duplicates (reverse (flatten (get-constant-table input-text)))))))
-			(fvar-init-table  (make-initial-fvars-table (caar (reverse (const-table )))))
+			(fvar-start-pos (+  (caar (reverse const-table )) (length (caddr (reverse const-table) ))))
+			(fvar-init-table  (make-initial-fvars-table fvar-start-pos))
+			(fvar-table (make-fvars-table (flatten (get-fvar-table input-text)) fvar-start-pos))
 		)
 		(begin 
 			(display (create-imports-macros-begining)  output-file)
 			(display (copy-const-table-to-memory (flatten (map append (map caddr const-table)))  1)  output-file)
-			(dipllay (copy-fvar-table-to-memory (flatten (map append (map cadd fvar-init-table)))))
-			(display (code-gen-text  input-text const-table) output-file)
+			(display (copy-fvar-table-to-memory (map cadr fvars-map) fvar-start-pos) output-file)
+			(display (code-gen-text  input-text const-table fvar-table) output-file)
 			(display  (create-imports-macros-end)  output-file)
 			(close-output-port output-file)
 		)))
@@ -293,7 +305,7 @@
 (define ^label-lambda-exit-loop (^^label "L_lambda_exit_loop"))
 ;
 (define code-gen-lambda
-	(lambda (e const-table env-depth)
+	(lambda (e const-table env-depth fvar-table)
 		(let* (	(vars (cadr e))
 				(body (caddr e))
 				(label-copy-old-env (^label-lambda-copy-old-env))
@@ -355,7 +367,7 @@
 			nl
 			"// Here starts the code of the actual lambda " lambda-uid nl
 			nl
-			(code-gen body const-table (+ 1 env-depth))
+			(code-gen body const-table (+ 1 env-depth) fvar-table)
 			nl
 			"// Here ends the code of the actual lambda " lambda-uid nl
 			nl
@@ -366,12 +378,20 @@
 		))))
 
 
+(define (code-gen-define e const-table env-depth fvar-table)
+	(with e (trace-lambda code-gen(def name exp)
+		(let* ((value (code-gen exp const-table env-depth fvar-table))
+				(mem-loc (memory-getter (cadr name) fvar-table)))
+			(string-append value "MOV(IND(" (number->string mem-loc) "), R0);" nl 
+				"MOV(R0,IMM(1));" nl)))))
+
+
 (define ^label-tp-applic-loop (^^label "L_tp_applic_loop"))
 (define ^label-tp-applic-exit-loop (^^label "L_tp_applic_exit_loop"))
-(define (code-gen-tp-applic e const-table env-depth)
+(define (code-gen-tp-applic e const-table env-depth fvar-table)
 	(with e (lambda (name operator params)
 	(let* ((params-code (gen-code-params (reverse params) const-table env-depth))
-			(proc-code (code-gen operator const-table env-depth))
+			(proc-code (code-gen operator const-table env-depth fvar-table))
 			(loop_label (^label-tp-applic-loop))
 			(loop_label_exit (^label-tp-applic-exit-loop )))
 			(string-append params-code	
@@ -521,15 +541,15 @@
 					current-list
 					(f	(cdr exp)
 						(+ 1 counter)
-						`(,@current-list (,(car exp) ,counter)))))))
-	(lambda (fvars-list mem-location)
-		(f fvars-list mem-location '())
-	)))
+						`(,@current-list (,counter ,(car exp))))))))
+	(lambda  (fvars-list mem-location)
+				(let ((initial (make-initial-fvars-table mem-location)))
+			(f fvars-list (+ mem-location (length initial)) initial)))))
 
-(define fvar-list-getter (lambda (exp)
+(define fvar-list-getter (trace-lambda fvar-getter (exp)
 	(cond
 		((or (null? exp)(symbol? exp)(tagged-with 'pvar exp)(tagged-with 'bvar exp)(tagged-with 'const exp))`(,@(list)))
-		((tagged-with 'fvar exp)(with exp (lambda(name constr) `(,constr))))
+		((tagged-with 'define exp) (with exp (lambda(def name obj)`,(cdr name))))
 		(else `(,@(fvar-list-getter  (car exp)) ,@(fvar-list-getter  (cdr exp)))))))
 
 
@@ -537,11 +557,9 @@
 (if (null? table)
 	(string-append "//END OF memory allocation " nl) 
   (let* 
-  	((exp (car table))
-	(e (if (number? exp)
-		(number->string exp)
-		(symbol->string exp))))
-	(string-append  "MOV(IND(" (number->string index) ") , MAKE_CLOSURE(" e "));" nl
+  	((exp (car table)))
+	(string-append "MAKE_CLOSURE(" exp  ");" nl  
+		"MOV(IND(" (number->string index) ") , R0);" nl
 (copy-fvar-table-to-memory (cdr table) (+ index 1)))
 	))))
 
@@ -549,7 +567,7 @@
 	(letrec ((f (lambda (processed-list not-processed-list counter)
 				(if	(null? not-processed-list)
 					processed-list
-					(f	`(,@processed-list (,(car not-processed-list) ,counter))
+					(f	`(,@processed-list (,counter ,(car not-processed-list)))
 						(cdr not-processed-list)
 						(+ 1 counter))))))
 	(lambda (initial-mem) 

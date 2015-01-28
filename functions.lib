@@ -247,7 +247,7 @@ CDR:
   RETURN;
 
 
-IS_NUNBER:
+IS_NUMBER:
   PUSH(FP);
   MOV(FP, SP);
   MOV(R0, SCMARG(0));

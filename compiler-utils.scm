@@ -153,4 +153,42 @@
 		integer->char make-vector vector-length
 		vector-ref vector-set! string-length
 		string-set! string-ref set-car! set-cdr!
-))
+			+ - * / > < = ))
+
+
+; map between scheme fvar name to the compiler's fvar name
+(define fvars-map `(
+	('cons				"CONS")
+	('car				"CAR")
+	('cdr				"CDR")
+	('eq?				"EQ")
+	('null?				"IS_NULL")
+	('boolean?			"IS_BOOL")
+	('integer?			"IS_INTEGER")
+	('number?			"IS_NUMBER")
+	('string?			"IS_STRING")
+	('char?				"IS_CHAR")
+	('vector?			"IS_VECTOR")
+	('symbol?			"IS_SYMBOL")
+	('zero?				"ZERO")
+	('pair?				"IS_PAIR")
+	('procedure?		"IS_PROC")
+	('make-string		"MAKE_STRING")
+	('char->integer		"CHAR_TO_INTEGER")
+	('integer->char		"INTEGER_TO_CHAR")
+	('make-vector		"MAKE_VECTOR")
+	('vector-length		"VECTOR_LENGTH")
+	('vector-ref		"VECTOR_REF")
+	('vector-set!		"VECTOR_SET")
+	('string-length		"STRING_LENGTH")
+	('string-set!		"STRING_SET")
+	('string-ref		"STRING_REF")
+	('set-car!			"SET_CAR")
+	('set-cdr!			"SET_CDR")
+	('+					"PLUS")
+	('-					"MINUS")
+	('*					"MULTIPLY")
+	('/					"DIV")
+	('>					"BIGGER_THAN")
+	('<					"LESS_THAN")
+	('=					"NUMBER_EQUALS")))
