@@ -520,7 +520,7 @@
 					current-list
 					(f	(cdr exp)
 						(+ 1 counter)
-						`(,@current-list (,(car exp) ,counter)))))))
+						`(,@current-list (,counter ,(car exp))))))))
 	(lambda (fvars-list mem-location)
 		(let ((initial (make-initial-fvars-table mem-location)))
 			(f fvars-list (+ mem-location (length initial)) initial)))))
@@ -529,7 +529,7 @@
 	(letrec ((f (lambda (processed-list not-processed-list counter)
 				(if	(null? not-processed-list)
 					processed-list
-					(f	`(,@processed-list (,(car not-processed-list) ,counter))
+					(f	`(,@processed-list (,counter ,(car not-processed-list)))
 						(cdr not-processed-list)
 						(+ 1 counter))))))
 	(lambda (initial-mem) 
