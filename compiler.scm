@@ -158,7 +158,7 @@
 	 	((tagged-with 'pvar e)(code-gen-pvar e const-table env-depth fvar-table))
 	 	((tagged-with 'bvar e)(code-gen-bvar e const-table env-depth fvar-table))
 	 	((tagged-with 'applic e)(code-gen-applic e const-table env-depth fvar-table))
-	 	((tagged-with 'tc-applic e)(code-gen-applic e const-table env-depth fvar-table))
+	 	((tagged-with 'tc-applic e)(code-gen-tp-applic e const-table env-depth fvar-table))
 		((tagged-with 'fvar e)(code-gen-fvar e const-table env-depth fvar-table))
 		((tagged-with 'lambda-simple e)(code-gen-lambda e const-table env-depth fvar-table))
 		((tagged-with 'lambda-opt e)(code-gen-lambda-opt e const-table env-depth fvar-table))
@@ -509,31 +509,26 @@
 			(loop_label (^label-tp-applic-loop))
 			(loop_label_exit (^label-tp-applic-exit-loop )))
 			(string-append params-code	
-				;"SHOW(\" \",FP);" nl
-				;"SHOW(\" \",SP);" nl
 				"PUSH(IMM("(number->string (length params))"));" nl
-				;"SHOW(\" \",SP);" nl
 				"//**************proc code**********" nl	proc-code "//**************proc code**********" nl
+
+				
 				"CMP(IND(R0),T_CLOSURE);"	nl
 				"JUMP_NE(lnot_proc);" nl
 				"MOV(R1,INDD(R0 , IMM(1))); //push env" nl
 				"PUSH(R1);" nl 
-				;"SHOW(\" \",SP);" nl
-				"PUSH(FPARG(-1));//push RETURN ADR" nl
+				"MOV(R1,FPARG(-1));"	
+				"PUSH(R1);//push RETURN ADR" nl
+				
 				"MOV(R3,FP);" nl
 				"SUB(R3,FPARG(-2));" nl
-				"MOV(R4,LOCAL(2));//NUMBER OF CURRENT ARGS" nl
+				"MOV(R4,IMM(" (number->string (length params)) "));//NUMBER OF CURRENT ARGS" nl
 				"ADD(R4,3);//number of total elemtns on stack" nl
 				"MOV(R5,R4);//save for later "nl
 				"MOV(R1,IMM(0));//counter"nl
 				"MOV(R6,FP);"nl
-
+	
 				"MOV(FP,FPARG(-2)); //new framepointer" nl
-				;"SHOW(\" \",R3);" nl
-				;"SHOW(\" \",R5);" nl
-				;"SHOW(\" \",FP);" nl
-				;"SHOW(\" \",SP);" nl
-
 				loop_label ":" nl
 				"CMP(R1,R4); " nl
 				"JUMP_EQ("loop_label_exit ");" nl
@@ -541,16 +536,12 @@
 				"ADD(R7,R1);" nl
 				"MOV(R8,R6);" nl
 				"ADD(R8,R1);" nl
-				;"SHOW(\" \",STACK(R7));" nl
-				;"SHOW(\" \",STACK(R8));" nl
 				"MOV(STACK(R7),STACK(R8));" nl
 				"INCR(R1);" nl
 				"JUMP(" loop_label ");" nl
 				loop_label_exit ":"
 				"MOV(SP,FP);" nl
 				"ADD(SP,R5);" nl
-				
-				;"SHOW(\" \",SP);" nl
 				"JUMPA((INDD(R0 , IMM(2)))); // jump to code label" nl
 				
 			)))))
