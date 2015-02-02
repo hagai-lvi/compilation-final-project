@@ -20,7 +20,7 @@ DROP(1);
 
 
     JUMP(CONTINUE);
-
+  #include "debug.h"
   #include "functions.lib"
 
    CONTINUE:

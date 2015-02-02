@@ -15,7 +15,7 @@
 				(set! n (+ n 1))
 			(string-append name (number->string n))))))
 
-
+(define ^argument-counter (^^label "agrument_number"))
 
 (define ^label-if3else (^^label "Lif3else"))
 
@@ -56,22 +56,23 @@
 
 (define (code-gen-const e const-table env-depth fvar-table)
 	(with e (lambda (const exp)
-	(cond ((number? exp)(if (integer? exp)
-							(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl )
-							(string-append (string->chars (number->string exp) "MAKE_SOB_NUMBER") )))
-		  ((string? exp)	(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
-		  ((char? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
-		  ((boolean? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
-		  ((null? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
-		  ((symbol? exp)(string-append "MAKE_SYMBOL(" (symbol->string exp )");"  nl))
-		  ((list? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
-		  ((void? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
-		  ((vector? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
-		  (else exp))	
+		(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl )
+	;(cond ((number? exp)(if (integer? exp)
+	;						(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl )
+	;						(string-append (string->chars (number->string exp) "MAKE_SOB_NUMBER") )))
+	;	  ((string? exp)	(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
+	;	  ((char? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
+	;	  ((boolean? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
+	;	  ((null? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
+	;	  ((symbol? exp)(string-append "MAKE_SYMBOL(" (symbol->string exp )");"  nl))
+	;	  ((list? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
+	;	  ((void? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
+	;	  ((vector? exp)
+	;	  (else exp))	
 	)))
 
 	
-
+(define applic-counter (^^label "application_number"))
 
 (define (code-gen-pvar e const-table env-depth fvar-table)
 	(with e (lambda(pvar var index)
@@ -84,21 +85,32 @@
 	)))
 
 (define gen-code-params (lambda (params const-table env-depth fvar-table)
+					(letrec ((args (^^label "agrument_number"))
+							(applic (applic-counter))
+					(f (lambda(params const-table env-depth fvar-table)
+					(let ((argument (args)))
 					(if (null? params)
 						(string-append "//end of params" nl )	
-						(string-append (code-gen (car params) const-table env-depth fvar-table)  "PUSH(R0); " nl  ( gen-code-params  (cdr params) const-table env-depth fvar-table)))))
-
+						(string-append "//************************************start of " argument "***" applic "***************************************"  nl
+						 (code-gen (car params) const-table env-depth fvar-table)  "PUSH(R0); " nl
+						 		(string-append "//************************************end of " argument "* "applic "*****************************************"  nl
+				
+						   ( f  (cdr params) const-table env-depth fvar-table))))))))
+					(f params const-table env-depth fvar-table))))
 (define (code-gen-applic e const-table env-depth fvar-table)
 	(with e (lambda(name operator params)
 	(let* ((params-code (gen-code-params (reverse params) const-table env-depth fvar-table))
 			(proc-code (code-gen operator const-table env-depth fvar-table)))
-			(string-append params-code	
+			(string-append 
+						
+				params-code	
 				"PUSH(IMM("(number->string (length params))"));" nl
 				"//**************proc code**********" nl	proc-code "//**************proc code**********" nl
 				"CMP(IND(R0),T_CLOSURE);"	nl
 				"JUMP_NE(lnot_proc);" nl
 				"MOV(R1,INDD(R0 , IMM(1))); //push env" nl
 				"PUSH(R1);" nl 
+					"INFO;" nl
 				"CALLA((INDD(R0 , IMM(2)))); // jump to code label" nl
 				"MOV(R1,STARG(0));" nl
 				"ADD(R1,2);" nl
@@ -158,7 +170,7 @@
 	 	((tagged-with 'pvar e)(code-gen-pvar e const-table env-depth fvar-table))
 	 	((tagged-with 'bvar e)(code-gen-bvar e const-table env-depth fvar-table))
 	 	((tagged-with 'applic e)(code-gen-applic e const-table env-depth fvar-table))
-	 	((tagged-with 'tc-applic e)(code-gen-tp-applic e const-table env-depth fvar-table))
+	 	((tagged-with 'tc-applic e)(code-gen-applic e const-table env-depth fvar-table))
 		((tagged-with 'fvar e)(code-gen-fvar e const-table env-depth fvar-table))
 		((tagged-with 'lambda-simple e)(code-gen-lambda e const-table env-depth fvar-table))
 		((tagged-with 'seq e)(code-gen-seq e const-table env-depth fvar-table))
@@ -360,6 +372,8 @@
 			"MOV(INDD(R0, 1), R1); // pointer to the new env" nl
 			"MOV(INDD(R0, 2), LABEL(" label-code ")); // pointer to the code" nl
 			"JUMP(" label-exit ");" nl
+
+		
 			label-code ": // the begining of the actual code of the lambda" nl
 			"PUSH(FP);" nl
 			"MOV(FP, SP);" nl
@@ -398,7 +412,6 @@
 				"PUSH(IMM("(number->string (length params))"));" nl
 				"//**************proc code**********" nl	proc-code "//**************proc code**********" nl
 
-				
 				"CMP(IND(R0),T_CLOSURE);"	nl
 				"JUMP_NE(lnot_proc);" nl
 				"MOV(R1,INDD(R0 , IMM(1))); //push env" nl
@@ -413,6 +426,7 @@
 				"MOV(R5,R4);//save for later "nl
 				"MOV(R1,IMM(0));//counter"nl
 				"MOV(R6,FP);"nl
+				"INFO;" nl
 	
 				"MOV(FP,FPARG(-2)); //new framepointer" nl
 				loop_label ":" nl
@@ -425,7 +439,7 @@
 				"MOV(STACK(R7),STACK(R8));" nl
 				"INCR(R1);" nl
 				"JUMP(" loop_label ");" nl
-				loop_label_exit ":"
+				loop_label_exit ":" nl
 				"MOV(SP,FP);" nl
 				"ADD(SP,R5);" nl
 				"JUMPA((INDD(R0 , IMM(2)))); // jump to code label" nl
