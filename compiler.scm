@@ -173,6 +173,7 @@
 	 	((tagged-with 'tc-applic e)(code-gen-applic e const-table env-depth fvar-table))
 		((tagged-with 'fvar e)(code-gen-fvar e const-table env-depth fvar-table))
 		((tagged-with 'lambda-simple e)(code-gen-lambda e const-table env-depth fvar-table))
+		((tagged-with 'lambda-opt e)(code-gen-lambda-opt e const-table env-depth fvar-table))
 		((tagged-with 'seq e)(code-gen-seq e const-table env-depth fvar-table))
 		((tagged-with 'or e)(code-gen-or e const-table env-depth fvar-table))
 		((tagged-with 'define e)(code-gen-define e const-table env-depth fvar-table))
@@ -329,6 +330,7 @@
 				(lambda-uid (string-append "lambda-" (getUID))))
 		(string-append
 			"// Starting code-gen for " lambda-uid nl
+			"PUSHAD;" nl
 			"MOV(R3, IMM(" (number->string env-depth) ")); // env depth" nl
 			"PUSH(R3); // store env size" nl
 			"CALL(MALLOC); // allocate mem for new env" nl
@@ -385,6 +387,118 @@
 			nl
 			"// Here ends the code of the actual lambda " lambda-uid nl
 			nl
+			"POP(FP);" nl
+			"RETURN;" nl
+			label-exit ":" nl
+			"POPAD;" nl
+
+		))))
+
+(define code-gen-lambda-opt
+	(lambda (e const-table env-depth fvar-table)
+		(let* (	(vars (cadr e))
+				(body (cadddr e))
+				(label-copy-old-env (^label-lambda-copy-old-env))
+				(label-make-new-env (^label-lambda-make-new-env))
+				(label-code (^label-lambda-code))
+				(label-exit (^label-lambda-exit))
+				(label-exit-loop-old-env (^label-lambda-exit-loop))
+				(label-exit-loop-new-env (^label-lambda-exit-loop))
+				(label-loop-1 (string-append "lambda_opt_loop1" (getUID)))
+				(label-exit-loop-1 (string-append "lambda_opt_exit_loop1" (getUID)))
+				(lambda-uid (string-append "lambda-" (getUID))))
+		(string-append
+			"// Starting code-gen for " lambda-uid nl
+			"MOV(R3, IMM(" (number->string env-depth) ")); // env depth" nl
+			"PUSH(R3); // store env size" nl
+			"CALL(MALLOC); // allocate mem for new env" nl
+			"DROP(IMM(1));" nl
+			"MOV(R1,R0); // pointer to the new env;" nl
+			"MOV(R2,FPARG(0)); // pointer to the old env" nl
+			"MOV(R4,IMM(0)); // R4 is i" nl
+			"MOV(R5,IMM(1)); // R5 is j" nl
+			"// iterating to copy the old env" nl
+			"// in to the new one" nl
+			label-copy-old-env ":" nl
+			"CMP(R4,R3);" nl
+			"JUMP_EQ(" label-exit-loop-old-env ");" nl
+			"MOV( INDD(R1,R5), INDD(R2,R4))" nl
+			"INCR(R4); //++i" nl
+			"INCR(R5); //++j" nl
+			"JUMP(" label-copy-old-env "); // another iteration" nl
+			label-exit-loop-old-env ": //end of for loop" nl
+			nl
+			"// Add the current params to the env" nl
+			"PUSH(IMM(SCMNARGS)); // number of variables" nl
+			"CALL(MALLOC);" nl
+			"DROP(IMM(1));" nl
+			"MOV(R3,R0);" nl
+			"MOV(R4, IMM(0)); // i=0" nl
+			label-make-new-env ": // 'for' loop" nl
+			"CMP(R4,IMM(SCMNARGS));" nl
+			"JUMP_EQ(" label-exit-loop-new-env ");" nl
+			"MOV(R6,R4);" nl
+			"ADD(R6,IMM(2));" nl
+			"MOV(R5, R6);" nl
+			"MOV(INDD(R3, R4), FPARG(R5));" nl
+			"INCR(R4);" nl
+			"JUMP(" label-make-new-env "); // another iteration" nl
+			label-exit-loop-new-env ": // end of for loop" nl
+			"MOV(IND(R1), R3); // move pointer to the pvars to the new env" nl
+			"PUSH(IMM(3));" nl
+			"CALL(MALLOC); // memory for the closure data struct" nl
+			"DROP(IMM(1));" nl
+			"MOV(INDD(R0, 0), T_CLOSURE);" nl
+			"MOV(INDD(R0, 1), R1); // pointer to the new env" nl
+			"MOV(INDD(R0, 2), LABEL(" label-code ")); // pointer to the code" nl
+			"JUMP(" label-exit ");" nl
+			label-code ": // the begining of the actual code of the lambda" nl
+			"PUSH(FP);" nl
+			"MOV(FP, SP);" nl
+			"PUSH(R1);" nl
+			"PUSH(R2);" nl
+			"PUSH(R3);" nl
+			"PUSH(R4);" nl
+			"PUSH(R5);" nl
+			
+			"MOV( R3, SCMNARGS); // total num of args" nl
+			"MOV( R2, IMM(" (number->string (length vars)) "));" nl
+
+			"MOV(R4,R3);" nl
+			"SUB(R4,R2); // num of opt args in R4" nl
+			label-loop-1 ":" nl
+			"CMP(R3,R2);" nl
+			"JUMP_EQ(" label-exit-loop-1 ");" nl
+			"PUSH(SCMARG(R3-1));" nl
+			"DECR(R3);" nl
+			"JUMP(" label-loop-1 ");" nl
+			nl
+			label-exit-loop-1 ":" nl
+			"PUSH(R4);" nl
+			"CALL(MAKE_LIST);" nl
+			"DROP(IMM(1)); //drop num of args" nl
+			"DROP(IMM(R4)); //drop args " nl
+			"MOV(R5,FP);" nl
+			"SUB(R5, R2);" nl
+			"SUB(R5, IMM(5));" nl
+			"MOV(STACK(R5), R0);" nl
+			"INFO" nl
+
+
+
+			"// TODO need to check arguments here" nl; TODO check arguments etc
+			nl
+			"// Here starts the code of the actual lambda " lambda-uid nl
+			nl
+			(code-gen body const-table (+ 1 env-depth) fvar-table)
+			nl
+			"// Here ends the code of the actual lambda " lambda-uid nl
+			nl
+			"POP(R5);" nl
+			"POP(R4);" nl
+			"POP(R3);" nl
+			"POP(R2);" nl
+			"POP(R1);" nl
 			"POP(FP);" nl
 			"RETURN;" nl
 			label-exit ":" nl
