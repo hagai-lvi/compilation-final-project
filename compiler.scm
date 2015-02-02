@@ -110,7 +110,7 @@
 				"JUMP_NE(lnot_proc);" nl
 				"MOV(R1,INDD(R0 , IMM(1))); //push env" nl
 				"PUSH(R1);" nl 
-					"INFO;" nl
+	
 				"CALLA((INDD(R0 , IMM(2)))); // jump to code label" nl
 				"MOV(R1,STARG(0));" nl
 				"ADD(R1,2);" nl
@@ -170,7 +170,7 @@
 	 	((tagged-with 'pvar e)(code-gen-pvar e const-table env-depth fvar-table))
 	 	((tagged-with 'bvar e)(code-gen-bvar e const-table env-depth fvar-table))
 	 	((tagged-with 'applic e)(code-gen-applic e const-table env-depth fvar-table))
-	 	((tagged-with 'tc-applic e)(code-gen-applic e const-table env-depth fvar-table))
+	 	((tagged-with 'tc-applic e)(code-gen-tp-applic e const-table env-depth fvar-table))
 		((tagged-with 'fvar e)(code-gen-fvar e const-table env-depth fvar-table))
 		((tagged-with 'lambda-simple e)(code-gen-lambda e const-table env-depth fvar-table))
 		((tagged-with 'lambda-opt e)(code-gen-lambda-opt e const-table env-depth fvar-table))
@@ -482,8 +482,6 @@
 			"SUB(R5, R2);" nl
 			"SUB(R5, IMM(5));" nl
 			"MOV(STACK(R5), R0);" nl
-			"INFO" nl
-
 
 
 			"// TODO need to check arguments here" nl; TODO check arguments etc
@@ -522,7 +520,10 @@
 			(proc-code (code-gen operator const-table env-depth fvar-table))
 			(loop_label (^label-tp-applic-loop))
 			(loop_label_exit (^label-tp-applic-exit-loop )))
-			(string-append params-code	
+			(string-append 
+
+				params-code	
+
 				"PUSH(IMM("(number->string (length params))"));" nl
 				"//**************proc code**********" nl	proc-code "//**************proc code**********" nl
 
@@ -540,9 +541,12 @@
 				"MOV(R5,R4);//save for later "nl
 				"MOV(R1,IMM(0));//counter"nl
 				"MOV(R6,FP);"nl
-				"INFO;" nl
 	
-				"MOV(FP,FPARG(-2)); //new framepointer" nl
+				"MOV(R10,FP);" nl
+				"SUB(R10,SCMNARGS); //new framepointer"  nl
+				"SUB(R10,4);" nl
+				"MOV(FP,R10);" nl
+
 				loop_label ":" nl
 				"CMP(R1,R4); " nl
 				"JUMP_EQ("loop_label_exit ");" nl
