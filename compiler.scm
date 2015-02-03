@@ -712,7 +712,7 @@
 		 		 			(let ((locations (map (lambda(expr)(get-const-location expr current-list)) (vector->list  e )))
 		 		 					(vec-length (vector-length e)))
 		 		 				(f rest `(,@current-list (,counter ,e (T_VECTOR ,vec-length ,@locations))) (+ counter vec-length 2))))
-		 		 		(else 'fail))))))) ; TODO exception? error?
+		 		 		(else (error 'make-const-table "Can't create symbol for ~s" `(,e) )))))))) ; TODO exception? error?
 	(lambda (exp)
 		(f (filter (lambda (x) (not (null? x))) exp) (get-initial-const-tbl) 7))))
 
@@ -768,7 +768,8 @@
 (define get-expression-of-variable
   (lambda(mems values value)
               (cond ((null? values)
-              	'error-not-found)
+
+              	(error 'get-expression-of-variable "Can't find value for ~s" value))
               	((equal? (car values) value)
               		(car mems))
               	(else (get-expression-of-variable (cdr mems)(cdr values) value)))))

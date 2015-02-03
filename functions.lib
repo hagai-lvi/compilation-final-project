@@ -1020,12 +1020,12 @@ MAKE_LIST:
   APPLY:
     PUSH(FP);
     MOV(FP, SP);
-    PUSH(R1);
-    PUSH(R2);
-    PUSH(R3);
-    PUSH(R4);
-    PUSH(R5);
-
+    INFO;
+/*    PUSH(R1);
+  PUSH(R2);
+  PUSH(R3);
+  PUSH(R4);
+  PUSH(R5);*/
     MOV(R0,SCMARG(1));
     MOV(R4, IMM(0));
 
@@ -1043,7 +1043,6 @@ MAKE_LIST:
     SUB(R1, R4);// now R1 stores the adress of the last element
     MOV(R5, SP);
     DECR(R5);// now R5 stores the adress of the first element
-    INFO;
     APPLY_REVERSE_LOOP:
     CMP(IMM(R1), IMM(R5)); // check if the pointers came across each other
     JUMP_GE(APPLY_END_REVERSE);
@@ -1055,21 +1054,52 @@ MAKE_LIST:
     JUMP(APPLY_REVERSE_LOOP);
 
     APPLY_END_REVERSE:
-    INFO;
 
     PUSH(R4); // number of args
     MOV(R0, SCMARG(0));
     PUSH(INDD(R0,1)); // push the env
-    CALLA(INDD(R0, 2));
-    
-    MOV(R1,STARG(0)); // drop args that are left on stack
-    ADD(R1,2);
-    DROP(IMM(R1));
+    MOV(R1,FPARG(-1)); 
+        PUSH(R1);//push RETURN ADR" nl
+        
+        MOV(R3,FP);
+        SUB(R3,FPARG(-2));
+        ADD(R4,3);//number of total elemtns on stack" nl
+        MOV(R5,R4);//save for later "nl
+        MOV(R1,IMM(0));//counter"nl
+        MOV(R6,FP);
+  
+        MOV(R10,FP);
+        SUB(R10,SCMNARGS); //new framepointer"
+        SUB(R10,4);
+        MOV(FP,R10);
 
-    POP(R5);
-    POP(R4);
-    POP(R3);
-    POP(R2);
-    POP(R1);
+        loop_label :
+        CMP(R1,R4); 
+        JUMP_EQ(loop_label_exit);
+        MOV(R7,FP);
+        ADD(R7,R1);
+        MOV(R8,R6);
+        ADD(R8,R1);
+        MOV(STACK(R7),STACK(R8));
+        INCR(R1);
+        JUMP(loop_label );
+        loop_label_exit :
+        MOV(SP,FP);
+        ADD(SP,R5);
+            INFO;
+        JUMPA((INDD(R0 , IMM(2)))); // jump to code label
+
+
+    // CALLA(INDD(R0, 2));
+    
+    // MOV(R1,STARG(0)); // drop args that are left on stack
+    // ADD(R1,2);
+    // DROP(IMM(R1));
+
+    // POP(R5);
+    // POP(R4);
+    // POP(R3);
+    // POP(R2);
+    // POP(R1);
     POP(FP);
     RETURN;
