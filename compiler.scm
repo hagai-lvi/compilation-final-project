@@ -405,6 +405,8 @@
 				(label-exit-loop-old-env (^label-lambda-exit-loop))
 				(label-exit-loop-new-env (^label-lambda-exit-loop))
 				(label-loop-1 (string-append "lambda_opt_loop1" (getUID)))
+				(label-loop-2 (string-append "lambda_opt_loop2" (getUID)))
+				(label-exit-loop-2 (string-append "lambda_opt_exit_loop2" (getUID)))
 				(label-exit-loop-1 (string-append "lambda_opt_exit_loop1" (getUID)))
 				(lambda-uid (string-append "lambda-" (getUID))))
 		(string-append
@@ -482,8 +484,19 @@
 			"SUB(R5, R2);" nl
 			"SUB(R5, IMM(5));" nl
 			"MOV(STACK(R5), R0);" nl
+					
+			"ADD(R5,IMM(" (number->string (length vars)) "));" nl
+			"ADD(R5,IMM(1));"
 
+			"MOV(STACK(R5),IMM(" (number->string (+ (length vars) 1)) "));" nl
+				"INFO;"
+			"MOV(R0,SP);" nl
+			"MOV(R1,IMM(" (number->string (length vars) ) "));" nl
+			"SUB(R0,R1);" nl
+			"MOV(R2,FP);"
 
+			""
+			""
 			"// TODO need to check arguments here" nl; TODO check arguments etc
 			nl
 			"// Here starts the code of the actual lambda " lambda-uid nl
