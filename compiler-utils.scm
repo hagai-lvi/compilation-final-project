@@ -153,7 +153,7 @@
 		integer->char make-vector vector-length
 		vector-ref vector-set! string-length
 		string-set! string-ref set-car! set-cdr!
-			+ - * / > < = ))
+			+ - * / > < =  apply))
 
 
 ; map between scheme fvar name to the compiler's fvar name
@@ -191,4 +191,5 @@
 	('/					"DIV")
 	('>					"BIGGER_THAN")
 	('<					"LESS_THAN")
-	('=					"NUMBER_EQUALS")))
+	('=					"NUMBER_EQUALS")
+	('apply 			"APPLY")))

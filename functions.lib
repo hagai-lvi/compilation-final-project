@@ -1016,3 +1016,60 @@ MAKE_LIST:
 
   POP(FP);
   RETURN;
+
+  APPLY:
+    PUSH(FP);
+    MOV(FP, SP);
+    PUSH(R1);
+    PUSH(R2);
+    PUSH(R3);
+    PUSH(R4);
+    PUSH(R5);
+
+    MOV(R0,SCMARG(1));
+    MOV(R4, IMM(0));
+
+    APPLY_PARAMAS_LOOP:
+    CMP(R0, SOB_NIL);
+    JUMP_EQ(APPLY_END_PARAMS);
+    PUSH(INDD(R0, IMM(1))); // get the car of the list
+    MOV(R0, INDD(R0, IMM(2))); // advance to the cdr of the list
+    INCR(R4); // count the list size
+    JUMP(APPLY_PARAMAS_LOOP);
+
+    APPLY_END_PARAMS:
+
+    MOV(R1, SP);
+    SUB(R1, R4);// now R1 stores the adress of the last element
+    MOV(R5, SP);
+    DECR(R5);// now R5 stores the adress of the first element
+    INFO;
+    APPLY_REVERSE_LOOP:
+    CMP(IMM(R1), IMM(R5)); // check if the pointers came across each other
+    JUMP_GE(APPLY_END_REVERSE);
+    MOV(R3, STACK(R1)); //temporasy variable for swap
+    MOV(STACK(R1), STACK(R5));
+    MOV(STACK(R5), R3);
+    INCR(R1);
+    DECR(R5);
+    JUMP(APPLY_REVERSE_LOOP);
+
+    APPLY_END_REVERSE:
+    INFO;
+
+    PUSH(R4); // number of args
+    MOV(R0, SCMARG(0));
+    PUSH(INDD(R0,1)); // push the env
+    CALLA(INDD(R0, 2));
+    
+    MOV(R1,STARG(0)); // drop args that are left on stack
+    ADD(R1,2);
+    DROP(IMM(R1));
+
+    POP(R5);
+    POP(R4);
+    POP(R3);
+    POP(R2);
+    POP(R1);
+    POP(FP);
+    RETURN;
