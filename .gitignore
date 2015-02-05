@@ -1,1 +1,4 @@
 .DS_Store
+*.dSYM
+debug_macros.h
+tests.sh
