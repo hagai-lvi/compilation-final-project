@@ -208,6 +208,7 @@ CDR:
   PUSH(FP);
   MOV(FP, SP);
   CMP(SCMNARGS,IMM(1));
+
   JUMP_NE(l_NOT_VALID_ARGUMENTS);
   MOV(R1,SCMARG(0));
   CMP(IND(R1), IMM(T_PAIR));
@@ -1020,7 +1021,6 @@ MAKE_LIST:
   APPLY:
     PUSH(FP);
     MOV(FP, SP);
-    INFO;
 /*    PUSH(R1);
   PUSH(R2);
   PUSH(R3);
@@ -1041,6 +1041,7 @@ MAKE_LIST:
 
     MOV(R1, SP);
     SUB(R1, R4);// now R1 stores the adress of the last element
+    MOV(R6,R1);
     MOV(R5, SP);
     DECR(R5);// now R5 stores the adress of the first element
     APPLY_REVERSE_LOOP:
@@ -1052,12 +1053,18 @@ MAKE_LIST:
     INCR(R1);
     DECR(R5);
     JUMP(APPLY_REVERSE_LOOP);
-
+   
     APPLY_END_REVERSE:
 
     PUSH(R4); // number of args
     MOV(R0, SCMARG(0));
     PUSH(INDD(R0,1)); // push the env
+    MOV(R1,R6);
+    DECR(R6);
+
+    CMP(FPARG(-2),STACK(R6));
+    JUMP_NE(APPLY_NOT_TAIL_POSITION);
+
     MOV(R1,FPARG(-1)); 
         PUSH(R1);//push RETURN ADR" nl
         
@@ -1086,16 +1093,15 @@ MAKE_LIST:
         loop_label_exit :
         MOV(SP,FP);
         ADD(SP,R5);
-            INFO;
+
         JUMPA((INDD(R0 , IMM(2)))); // jump to code label
-
-
-    // CALLA(INDD(R0, 2));
+    APPLY_NOT_TAIL_POSITION:
+     CALLA(INDD(R0, 2));
     
-    // MOV(R1,STARG(0)); // drop args that are left on stack
-    // ADD(R1,2);
-    // DROP(IMM(R1));
-
+     MOV(R1,STARG(0)); // drop args that are left on stack
+     ADD(R1,2);
+     DROP(IMM(R1));
+     APPLY_EXIT:
     // POP(R5);
     // POP(R4);
     // POP(R3);
