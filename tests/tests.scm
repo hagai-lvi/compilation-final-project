@@ -67,10 +67,7 @@
 			`( ,@(get-initial-const-tbl) (7 1 (T_INTEGER 1)) (9 "abc" (T_STRING 3 97 98 99)) (14 3 (T_INTEGER 3))))
 	)
 
-	(define-test test-make-fvars-table
-		(assert-equal? (make-fvars-table `() 100) (make-initial-fvars-table 100) )
-		(assert-equal? (make-fvars-table `(a b c d) 100) `( ,@(make-initial-fvars-table 100) (134 a) (135 b) (136 c) (137 d) ) )
-	)
+
 
 	(define-test test-get-const-location
 		(assert-equal?	(get-const-location 1 (make-const-table '(1 2 3)))
