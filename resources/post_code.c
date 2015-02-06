@@ -5,7 +5,7 @@
  //  INFO;
 	JUMP(EXIT);
   l_NOT_VALID_ARGUMENTS:
-  printf("not l_NOT_VALID_ARGUMENTS \n");
+
   // INFO;
 	JUMP(EXIT);	
   l_NOT_PAIR:

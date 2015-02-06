@@ -481,7 +481,7 @@
 			"ADD(R5,IMM(" (number->string (length vars)) "));" nl
 			"ADD(R5,IMM(1));" nl
 
-			"MOV(STACK(R5),IMM(" (number->string (+ (length vars) 1)) "));" nl
+		;	"MOV(STACK(R5),IMM(" (number->string (+ (length vars) 1)) "));" nl
 			"MOV(R0,SP); //number of elements to push" nl 
 			"MOV(R1,IMM(" (number->string (length vars) ) "));" nl
 			"SUB(R0,R1);" nl
@@ -593,7 +593,7 @@
 			"ADD(R5,IMM(R2));" nl
 			"ADD(R5,IMM(1));" nl
 
-			"MOV(STACK(R5),IMM(1));// number of arguments on the stack - 1 for lambda variadic" nl
+		;	"MOV(STACK(R5),IMM(1));// number of arguments on the stack - 1 for lambda variadic" nl
 			; "MOV(R0,SP); //number of elements to push" nl 
 			; "MOV(R1,IMM(" (number->string (length vars) ) "));" nl
 			; "SUB(R0,R1);" nl
