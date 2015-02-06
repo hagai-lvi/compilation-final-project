@@ -1,0 +1,1113 @@
+
+  #include "macros.h"
+  #include "arch/char.lib"
+  #include "arch/io.lib"
+  #include "arch/math.lib"
+  #include "arch/string.lib"
+  #include "arch/system.lib"
+  #include "arch/scheme.lib"
+
+//make_pair
+ CONS:
+  PUSH(FP);
+  MOV(FP, SP);
+  PUSH(IMM(3));
+  CALL(MALLOC);
+  DROP(IMM(1));
+  MOV(IND(R0), T_PAIR);
+  MOV(INDD(R0, 1), SCMARG(0));
+  MOV(INDD(R0, 2), SCMARG(1));
+  POP(FP);
+  RETURN;
+//TODO ADD ARGUMENT CHECKING MACRO
+
+
+//add argument check
+MAKE_STRING:
+  PUSH(FP);
+  MOV(FP, SP);
+  PUSH(R1);
+  PUSH(R2);
+  MOV(R3,SCMNARGS);
+  CMP(R3,IMM(2));
+  JUMP_EQ(MAKE_STRING_2_ARGS);
+  
+  MOV(R1,IMM(70));
+  MOV(R0,SCMARG(0));
+  MOV(R0,INDD(R0,1));
+  MOV(R2,R0);
+  JUMP(MAKE_STRING_LOOP);
+ MAKE_STRING_2_ARGS:
+  MOV(R1,SCMARG(0));
+  MOV(R1,INDD(R1,1));
+  MOV(R0,SCMARG(1));
+  MOV(R0,INDD(R0,1));
+  MOV(R2,R0);
+MAKE_STRING_LOOP:
+  CMP(R0,IMM(0));
+  JUMP_EQ(MAKE_STRING_EXIT);
+  PUSH(R1);
+  DECR(R0);
+  JUMP(MAKE_STRING_LOOP);
+MAKE_STRING_EXIT:
+  PUSH(R2);
+  CALL(MAKE_SOB_STRING);
+  DROP(R2);
+  DROP(1);
+  POP(R2);
+  POP(R1);
+  POP(FP);
+  RETURN;
+
+
+
+  MAKE_VECTOR:
+  PUSH(FP);
+  MOV(FP, SP);
+  PUSH(R1);
+  PUSH(R2);
+  MOV(R3,SCMNARGS);
+  CMP(R3,IMM(2));
+  JUMP_EQ(MAKE_VECTOR_2_ARGS);
+  MAKE_CHAR(IMM(70));
+  MOV(R1,R0);
+  MOV(R0,SCMARG(0));
+  MOV(R0,INDD(R0,1));
+  MOV(R2,R0);
+
+  JUMP(MAKE_VECTOR_LOOP);
+ MAKE_VECTOR_2_ARGS:
+  MOV(R1,SCMARG(1));
+  MOV(R0,SCMARG(0));
+  MOV(R0,INDD(R0,1));
+  MOV(R2,R0);
+MAKE_VECTOR_LOOP:
+  CMP(R0,IMM(0));
+  JUMP_EQ(MAKE_VECTOR_EXIT);
+  PUSH(R1);
+  DECR(R0);
+  JUMP(MAKE_VECTOR_LOOP);
+MAKE_VECTOR_EXIT:
+  PUSH(R2);
+  CALL(MAKE_SOB_VECTOR);
+  DROP(R2);
+  DROP(1);
+  POP(R2);
+  POP(R1);
+  POP(FP);
+  RETURN;
+
+
+VECTOR_REF:
+ PUSH(FP);
+  MOV(FP, SP);
+  PUSH(R1);
+  PUSH(R2);
+  MOV(R0, SCMARG(0));
+  MOV(R2, R0);
+  ADD(R2, IMM(2));
+  MOV(R1,SCMARG(1));
+  MOV(R1,INDD(R1,1));
+ L_VECTOR_LOOP:
+  CMP(R1, IMM(0));
+  JUMP_EQ(L_VECTOR_EXIT);
+  INCR(R2);
+  DECR(R1);
+  JUMP(L_VECTOR_LOOP);  
+L_VECTOR_EXIT:
+  MOV(R0,IND(R2));
+  POP(R2);
+  POP(R1);
+  POP(FP);
+  RETURN;
+
+  VECTOR_SET:
+ PUSH(FP);
+  MOV(FP, SP);
+  PUSH(R1);
+  PUSH(R2);
+  MOV(R0, SCMARG(0));
+  MOV(R2, R0);
+  ADD(R2, IMM(2));
+  MOV(R1,SCMARG(1));
+  MOV(R1,INDD(R1,1));
+ L_VECTOR_SET_LOOP:
+  CMP(R1, IMM(0));
+  JUMP_EQ(L_VECTOR_SET_EXIT);
+  INCR(R2);
+  DECR(R1);
+  JUMP(L_VECTOR_SET_LOOP);  
+L_VECTOR_SET_EXIT:
+  MOV(IND(R2),SCMARG(2));
+  MOV(R0,SCMARG(0));
+  POP(R2);
+  POP(R1);
+  POP(FP);
+  RETURN;
+
+
+CHAR_TO_INTEGER:
+  
+  PUSH(FP);
+  MOV(FP, SP);
+  PUSH(R1);
+  PUSH(R2);
+  CMP(SCMNARGS,IMM(1));
+  //JUMP_NE(l_NOT_VALID_ARGUMENTS);
+  MOV(R2,SCMARG(0));
+  MOV(R2,INDD(R2,IMM(1)));
+  MAKE_INTEGER(R2);
+  POP(R2);
+  POP(R1);
+  POP(FP);
+  RETURN;
+
+  INTEGER_TO_CHAR:
+  
+  PUSH(FP);
+  MOV(FP, SP);
+  PUSH(R1);
+  PUSH(R2);
+  CMP(SCMNARGS,IMM(1));
+  //JUMP_NE(l_NOT_VALID_ARGUMENTS);
+  MOV(R2,SCMARG(0));
+  MOV(R2,INDD(R2,IMM(1)));
+  MAKE_CHAR(R2);
+  POP(R2);
+  POP(R1);
+  POP(FP);
+  RETURN;
+
+
+VECTOR_LENGTH:  
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0,SCMARG(0));
+  MOV(R0,INDD(R0,IMM(1)));
+  MAKE_INTEGER(R0);
+  POP(FP);
+  RETURN;
+
+
+CAR:
+  
+  PUSH(FP);
+  MOV(FP, SP);
+  CMP(SCMNARGS,IMM(1));
+  JUMP_NE(l_NOT_VALID_ARGUMENTS);
+  MOV(R1,SCMARG(0));
+  CMP(IND(R1), IMM(T_PAIR));
+  JUMP_NE(l_NOT_PAIR);
+  MOV(R0,INDD(R1,IMM(1)));
+  POP(FP);
+  RETURN;
+
+
+
+CDR:
+  PUSH(FP);
+  MOV(FP, SP);
+  CMP(SCMNARGS,IMM(1));
+
+  JUMP_NE(l_NOT_VALID_ARGUMENTS);
+  MOV(R1,SCMARG(0));
+  CMP(IND(R1), IMM(T_PAIR));
+  JUMP_NE(l_NOT_PAIR);
+  MOV(R0,INDD(R1,IMM(2)));
+  POP(FP);
+  RETURN;
+
+ IS_BOOL:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_BOOL));
+  JUMP_EQ(l_IS_SOB_BOOl_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(l_IS_SOB_BOOl_EXIT);
+ l_IS_SOB_BOOl_TRUE:
+  MOV(R0, IMM(1));
+ l_IS_SOB_BOOl_EXIT:
+  MAKE_BOOL(R0);
+  POP(FP);
+  RETURN;
+
+   IS_NULL:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_NIL));
+  JUMP_EQ(l_IS_SOB_NIL_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(l_IS_SOB_NIL_EXIT);
+ l_IS_SOB_NIL_TRUE:
+  MOV(R0, IMM(1));
+ l_IS_SOB_NIL_EXIT:
+  MAKE_BOOL(R0);
+  POP(FP);
+  RETURN;
+
+
+IS_NUMBER:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_FRACTION));
+  JUMP_EQ(l_IS_SOB_NUMBER_TRUE);
+  CMP(IND(R0), IMM(T_INTEGER));  
+  MOV(R0, IMM(0));
+  JUMP(l_IS_SOB_NUMBER_EXIT);
+ l_IS_SOB_NUMBER_TRUE:
+  MOV(R0, IMM(1));
+ l_IS_SOB_NUMBER_EXIT:
+   MAKE_BOOL(R0);
+  POP(FP);
+  RETURN;
+
+IS_INTEGER:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_INTEGER));
+  JUMP_EQ(l_IS_SOB_INTEGER_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(l_IS_SOB_INTEGER_EXIT);
+ l_IS_SOB_INTEGER_TRUE:
+  MOV(R0, IMM(1));
+ l_IS_SOB_INTEGER_EXIT:
+   MAKE_BOOL(R0);
+  POP(FP);
+  RETURN;
+
+IS_STRING:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_STRING));
+  JUMP_EQ(l_IS_SOB_STRING_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(l_IS_SOB_STRING_EXIT);
+ l_IS_SOB_STRING_TRUE:
+  MOV(R0, IMM(1));
+ l_IS_SOB_STRING_EXIT:
+   MAKE_BOOL(R0);
+  POP(FP);
+  RETURN;
+
+  IS_CHAR:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_CHAR));
+  JUMP_EQ(l_IS_SOB_CHAR_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(l_IS_SOB_CHAR_EXIT);
+ l_IS_SOB_CHAR_TRUE:
+  MOV(R0, IMM(1));
+ l_IS_SOB_CHAR_EXIT:
+   MAKE_BOOL(R0);
+  POP(FP);
+  RETURN;
+
+
+IS_SYMBOL:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_SYMBOL));
+  JUMP_EQ(l_IS_SOB_SYMBOl_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(l_IS_SOB_SYMBOl_EXIT);
+ l_IS_SOB_SYMBOl_TRUE:
+  MOV(R0, IMM(1));
+ l_IS_SOB_SYMBOl_EXIT:
+   MAKE_BOOL(R0);
+  POP(FP);
+  RETURN;
+
+IS_VECTOR:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_VECTOR));
+  JUMP_EQ(l_IS_SOB_VECTOR_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(l_IS_SOB_VECTOR_EXIT);
+ l_IS_SOB_VECTOR_TRUE:
+  MOV(R0, IMM(1));
+ l_IS_SOB_VECTOR_EXIT:
+   MAKE_BOOL(R0);
+  POP(FP);
+  RETURN;
+
+IS_PAIR:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), IMM(T_PAIR));
+  JUMP_EQ(l_IS_SOB_PAIR_TRUE);
+  MOV(R0, IMM(0));
+  JUMP(l_IS_SOB_PAIR_EXIT);
+ l_IS_SOB_PAIR_TRUE:
+  MOV(R0, IMM(1));
+ l_IS_SOB_PAIR_EXIT:
+   MAKE_BOOL(R0);
+  POP(FP);
+  RETURN;
+
+ MAKE_SOB_NUMBER:
+  PUSH(FP);
+  MOV(FP, SP);
+  PUSH(R1);
+  PUSH(R2);
+  PUSH(R3);
+  MOV(R0, FPARG(0));
+  ADD(R0, IMM(2));
+  PUSH(R0);
+  CALL(MALLOC);
+  DROP(1);
+  MOV(IND(R0), IMM(T_NUMBER));
+  MOV(INDD(R0, 1), FPARG(0));
+  MOV(R1, FP);
+  MOV(R2, FPARG(0));
+  ADD(R2, IMM(3));
+  SUB(R1, R2);
+  MOV(R2, R0);
+  ADD(R2, IMM(2));
+  MOV(R3, FPARG(0));
+ L_MSS_NUMBER_LOOP:
+  CMP(R3, IMM(0));
+  JUMP_EQ(L_MSS_NUMBER_EXIT);
+  MOV(IND(R2), STACK(R1)); 
+  INCR(R1);
+  INCR(R2);
+  DECR(R3);
+  JUMP(L_MSS_NUMBER_LOOP);
+ L_MSS_NUMBER_EXIT:
+  POP(R3);
+  POP(R2);
+  POP(R1);
+  POP(FP);
+  RETURN;
+
+
+WRITE_SOB_NUMBER:
+  PUSH(FP);
+  MOV(FP, SP);
+  PUSH(R1);
+  PUSH(R2);
+  PUSH(R3);
+  MOV(R0, FPARG(0));
+  MOV(R1, INDD(R0, 1));
+  MOV(R2, R0);
+  ADD(R2, IMM(2));
+ L_WSS1_LOOP:
+  CMP(R1, IMM(0));
+  JUMP_EQ(L_WSS1_EXIT);
+  CMP(IND(R2), '\n');
+  JUMP_EQ(L_WSS1_NEWLINE);
+  CMP(IND(R2), '\t');
+  JUMP_EQ(L_WSS1_TAB);
+  CMP(IND(R2), '\f');
+  JUMP_EQ(L_WSS1_PAGE);
+  CMP(IND(R2), '\r');
+  JUMP_EQ(L_WSS1_RETURN);
+  CMP(IND(R2), '\\');
+  JUMP_EQ(L_WSS1_BACKSLASH);
+  CMP(IND(R2), '\"');
+  JUMP_EQ(L_WSS1_DQUOTE);
+  CMP(IND(R2), ' ');
+  JUMP_LT(L_WSS1_OCT_CHAR);
+  PUSH(IND(R2));
+  CALL(PUTCHAR);
+  DROP(1);
+  JUMP(L_WSS1_LOOP_CONT);
+ L_WSS1_DQUOTE:
+  PUSH(IMM('\\'));
+  CALL(PUTCHAR);
+  PUSH(IMM('\"'));
+  CALL(PUTCHAR);
+  DROP(2);
+  JUMP(L_WSS1_LOOP_CONT);
+ L_WSS1_BACKSLASH:
+  PUSH(IMM('\\'));
+  CALL(PUTCHAR);
+  PUSH(IMM('\\'));
+  CALL(PUTCHAR);
+  DROP(2);
+  JUMP(L_WSS1_LOOP_CONT);
+ L_WSS1_RETURN:
+  PUSH(IMM('\\'));
+  CALL(PUTCHAR);
+  PUSH(IMM('r'));
+  CALL(PUTCHAR);
+  DROP(2);
+  JUMP(L_WSS1_LOOP_CONT);
+ L_WSS1_PAGE:
+  PUSH(IMM('\\'));
+  CALL(PUTCHAR);
+  PUSH(IMM('f'));
+  CALL(PUTCHAR);
+  DROP(2);
+  JUMP(L_WSS1_LOOP_CONT);
+ L_WSS1_TAB:
+  PUSH(IMM('\\'));
+  CALL(PUTCHAR);
+  PUSH(IMM('t'));
+  CALL(PUTCHAR);
+  DROP(2);
+  JUMP(L_WSS1_LOOP_CONT);  
+ L_WSS1_NEWLINE:
+  PUSH(IMM('\\'));
+  CALL(PUTCHAR);
+  PUSH(IMM('n'));
+  CALL(PUTCHAR);
+  DROP(2);
+  JUMP(L_WSS1_LOOP_CONT);
+ L_WSS1_OCT_CHAR:
+  MOV(R0, IND(R2));
+  MOV(R3, R0);
+  REM(R3, IMM(8));
+  PUSH(R3);
+  DIV(R0, IMM(8));
+  MOV(R3, R0);
+  REM(R3, IMM(8));
+  PUSH(R3);
+  DIV(R0, IMM(8));
+  REM(R0, IMM(8));
+  PUSH(R0);
+  PUSH(IMM('\\'));
+  CALL(PUTCHAR);
+  DROP(1);
+  CALL(WRITE_INTEGER);
+  DROP(1);
+  CALL(WRITE_INTEGER);
+  DROP(1);
+  CALL(WRITE_INTEGER);
+  DROP(1);
+ L_WSS1_LOOP_CONT:
+  INCR(R2);
+  DECR(R1);
+  JUMP(L_WSS1_LOOP);
+ L_WSS1_EXIT:
+  POP(R3);
+  POP(R2);
+  POP(R1);
+  POP(FP);
+  RETURN;
+
+
+STACK_PRINT:
+  PUSH(FP);
+  MOV(FP, SP);
+  PUSH(R1);
+  PUSH(R2);
+  MOV(R1,SP);
+  SHOW("STACK " ,SP);
+  DECR(R1);
+  loop:
+  CMP(R1,IMM(-1));
+  JUMP_EQ(loop_exit);
+  MOV(R2,STACK(R1));
+  SHOW("STACK " ,STACK(R1));
+  DECR(R1);
+  JUMP(loop);
+  loop_exit:
+  POP(R2);
+  POP(R1);
+  POP(FP);
+  RETURN;
+
+
+
+SET_CAR:
+ 
+  PUSH(FP);
+  MOV(FP,SP);
+  PUSH(R1);
+  MOV(R1,SCMARG(1));
+  MOV(R0,SCMARG(0));
+  MOV(INDD(R0,1),R1);
+  POP(R1);
+  POP(FP);
+  RETURN;
+
+
+SET_CDR:
+ 
+  PUSH(FP);
+  MOV(FP,SP);
+  PUSH(R1);
+  MOV(R1,SCMARG(1));
+  MOV(R0,SCMARG(0));
+  MOV(INDD(R0,2),R1);
+  POP(R1);
+  POP(FP);
+  RETURN;
+
+
+   IS_PROC:
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0, SCMARG(0));
+  CMP(IND(R0), T_CLOSURE);
+  JUMP_EQ(L_IS_CLOSURE_TRUE);
+  MOV(R0, IMM(3));
+  JUMP(L_IS_CLOSURE_EXIT);
+ L_IS_CLOSURE_TRUE:
+  MOV(R0, IMM(5));
+ L_IS_CLOSURE_EXIT:
+  POP(FP);
+  RETURN;
+
+PLUS:
+  PUSH(FP);
+  MOV(FP,SP);
+  PUSH(R1);
+  PUSH(R2);
+  MOV(R0,0); // init result
+  //Iterate over arguments and add them to the result
+  MOV(R1,0); //i=0
+  L_PLUS_LOOP :
+  CMP(R1, SCMNARGS); //number of args
+  JUMP_EQ(L_PLUS_EXIT_LOOP);
+  // Actual code for addition
+  PUSH(R0); //backup
+  MOV(R0,SCMARG(R1)); //get pvar to R0
+  GET_INTEGER;
+  MOV(R2,R0); //save the pvar
+  POP(R0);
+  ADD(R0,R2);
+  // end actual code for addition
+  INCR(R1); //++i
+  JUMP(L_PLUS_LOOP); // another iteration
+  L_PLUS_EXIT_LOOP : //end of for loop
+  MAKE_INTEGER(R0);
+  POP(R2);
+  POP(R1);
+  POP(FP);
+  RETURN;
+
+
+MINUS:
+  PUSH(FP);
+  MOV(FP,SP);
+  CMP(0,SCMNARGS);
+  JUMP_NE(MINUS_CONTINUE);
+
+  printf("Exception: incorrect argument count in call (-)\n" ); //TODO need to change the printf
+  POP(FP);
+  JUMP(l_NOT_VALID_ARGUMENTS);
+
+  MINUS_CONTINUE:
+  CMP(1,SCMNARGS);
+  JUMP_EQ(MINUS_UNARY);
+
+  //MINUS_REGULAR:
+  MOV(R0,SCMARG(0)); // init result
+  GET_INTEGER;
+  MOV(R1,R0); //Now we have the value of the first arg in R1
+  //Iterate over arguments and add them to the result
+  MOV(R2,1); //i=1
+  L_MINUS_LOOP :
+  CMP(R2, SCMNARGS); //number of args
+  JUMP_EQ(L_MINUS_EXIT_LOOP);
+  // Actual code for addition
+  MOV(R0,SCMARG(R2)); //get arg to R0
+  GET_INTEGER;
+  SUB(R1,R0);
+  // end actual code for addition
+  INCR(R2); //++i
+  JUMP(L_MINUS_LOOP); // another iteration
+  L_MINUS_EXIT_LOOP : //end of for loop
+  MOV(R0,R1);
+  JUMP(MINUS_FINISH);
+
+  MINUS_UNARY:
+  MOV(R0,SCMARG(0)); //get the arg
+  GET_INTEGER;
+  MOV(R1, IMM(0));
+  SUB(R1,R0);
+  MOV(R0,R1);
+  JUMP(MINUS_FINISH);
+
+  MINUS_FINISH:
+  MAKE_INTEGER(R0);
+  POP(FP);
+  RETURN;
+
+MULTIPLY:
+  PUSH(FP);
+  MOV(FP,SP);
+  MOV(R0,1); // init result
+  //Iterate over arguments and multiply
+  MOV(R1,0); //i=0
+  L_MULTIPLY_LOOP :
+  CMP(R1, SCMNARGS);
+  JUMP_EQ(L_MULTIPLY_EXIT_LOOP);
+  // Actual code for multiplication
+  PUSH(R0); //backup
+  MOV(R0,SCMARG(R1)); //get arg to R0
+  GET_INTEGER;
+  MOV(R2,R0); //save the arg
+  POP(R0);
+  MUL(R0,R2);
+  // end actual code for multiplication
+  INCR(R1); //++i
+  JUMP(L_MULTIPLY_LOOP); // another iteration
+  L_MULTIPLY_EXIT_LOOP : //end of for loop
+  MAKE_INTEGER(R0);
+  POP(FP);
+  RETURN;
+
+DIV:
+  PUSH(FP);
+  MOV(FP,SP);
+  CMP(0,SCMNARGS);
+  JUMP_NE(DIV_CONTINUE);
+
+  printf("Exception: incorrect argument count in call (/)\n" ); //TODO need to change the printf
+  POP(FP);
+  JUMP(l_NOT_VALID_ARGUMENTS);
+
+  DIV_CONTINUE:
+  CMP(1,SCMNARGS);
+  JUMP_EQ(DIV_UNARY);
+
+  //DIV_REGULAR:
+  MOV(R0,SCMARG(0)); // init result
+  GET_INTEGER;
+  MOV(R1,R0); //Now we have the value of the first arg in R1
+  //Iterate over arguments and add them to the result
+  MOV(R2,1); //i=1
+  L_DIV_LOOP :
+  CMP(R2, SCMNARGS); //number of args
+  JUMP_EQ(L_DIV_EXIT_LOOP);
+  // Actual code for division
+  MOV(R0,SCMARG(R2)); //get arg to R0
+  GET_INTEGER;
+  CMP(R0,IMM(0)); // check for division by zero
+  JUMP_EQ(DIV_BY_ZERO);
+  DIV(R1,R0);
+  // end actual code for addition
+  INCR(R2); //++i
+  JUMP(L_DIV_LOOP); // another iteration
+  L_DIV_EXIT_LOOP : //end of for loop
+  MOV(R0,R1);
+  JUMP(DIV_FINISH);
+
+  DIV_UNARY:
+  MOV(R0,SCMARG(0)); //get the arg
+  GET_INTEGER;
+  MOV(R1, IMM(1));
+  DIV(R1,R0);
+  MOV(R0,R1);
+  JUMP(DIV_FINISH);
+
+  DIV_FINISH:
+  MAKE_INTEGER(R0);
+  POP(FP);
+  RETURN;
+
+DIV_BY_ZERO:
+  printf("Exception: division by zero" ); //TODO need to change the printf
+  POP(FP);
+  JUMP(l_NOT_VALID_ARGUMENTS);
+
+// return in R0 1 if (R1 > R0), 0 otherwise
+BINARY_BIGGER_THAN:
+  CMP(R1,R0);
+  JUMP_GT (BINARY_BIGGER_THAN_TRUE);
+  JUMP (BINARY_BIGGER_THAN_FALSE);
+
+  BINARY_BIGGER_THAN_TRUE:
+  MOV(R0,1);
+  RETURN;
+  BINARY_BIGGER_THAN_FALSE:
+  MOV(R0,0);
+  RETURN;
+  
+
+BIGGER_THAN: // variadic >
+  PUSH(FP);
+  MOV(FP,SP);
+  CMP(0,SCMNARGS);
+  JUMP_EQ(BIGGER_THAN_INCORRECT_ARGUMENT_COUNT);
+
+  MOV(R3, 1); // initial res is true
+  MOV(R2, 1); // i=1;
+  MOV(R0, SCMARG(0)); //get first arg
+  GET_INTEGER;
+  
+  BIGGER_THAN_LOOP:
+  CMP(R2, SCMNARGS);
+  JUMP_EQ (BIGGER_THAN_FINISH);
+  MOV(R1,R0);
+  MOV(R0, SCMARG(R2));
+  GET_INTEGER;
+  PUSH(R0);
+  PUSH(R1);
+  CALL(BINARY_BIGGER_THAN);
+  AND(R3,R0);
+  POP(R1);
+  POP(R0);
+  INCR(R2);
+  JUMP (BIGGER_THAN_LOOP);
+
+
+  BIGGER_THAN_INCORRECT_ARGUMENT_COUNT:
+  printf("incorrect argument count in call (>)\n"); //TODO don't use printf
+  POP(FP);
+  JUMP(l_NOT_VALID_ARGUMENTS);
+
+  BIGGER_THAN_NOT_A_NUMBER_ERROR:
+  //TODO print the illegal argument
+  printf("Got a non number argument to >\n"); //TODO don't use printf
+  POP(FP);
+  JUMP(l_NOT_VALID_ARGUMENTS);
+
+  BIGGER_THAN_FINISH:
+  MAKE_BOOL(R3);
+  POP(FP);
+  RETURN;
+
+// return in R0 1 if (R1 < R0), 0 otherwise
+BINARY_LESS_THAN:
+  CMP(R1,R0);
+  JUMP_LT (BINARY_LESS_THAN_TRUE);
+  JUMP (BINARY_LESS_THAN_FALSE);
+
+  BINARY_LESS_THAN_TRUE:
+  MOV(R0,1);
+  RETURN;
+  BINARY_LESS_THAN_FALSE:
+  MOV(R0,0);
+  RETURN;
+  
+
+LESS_THAN: // variadic <
+  PUSH(FP);
+  MOV(FP,SP);
+  CMP(0,SCMNARGS);
+  JUMP_EQ(LESS_THAN_INCORRECT_ARGUMENT_COUNT);
+
+  MOV(R3, 1); // initial res is true
+  MOV(R2, 1); // i=1;
+  MOV(R0, SCMARG(0)); //get first arg
+  GET_INTEGER;
+  
+  LESS_THAN_LOOP:
+  CMP(R2, SCMNARGS);
+  JUMP_EQ (LESS_THAN_FINISH);
+  MOV(R1,R0);
+  MOV(R0, SCMARG(R2));
+  GET_INTEGER;
+  PUSH(R0);
+  PUSH(R1);
+  CALL(BINARY_LESS_THAN);
+  AND(R3,R0);
+  POP(R1);
+  POP(R0);
+  INCR(R2);
+  JUMP (LESS_THAN_LOOP);
+
+
+  LESS_THAN_INCORRECT_ARGUMENT_COUNT:
+  printf("incorrect argument count in call (<)\n"); //TODO don't use printf
+  POP(FP);
+  JUMP(l_NOT_VALID_ARGUMENTS);
+
+  LESS_THAN_NOT_A_NUMBER_ERROR:
+  //TODO print the illegal argument
+  printf("Got a non number argument to <\n"); //TODO don't use printf
+  POP(FP);
+  JUMP(l_NOT_VALID_ARGUMENTS);
+
+  LESS_THAN_FINISH:
+  MAKE_BOOL(R3);
+  POP(FP);
+  RETURN;
+
+BINARY_NUMBER_EQUALS:
+// return in R0 1 if (R1 = R0), 0 otherwise
+  CMP(R1,R0);
+  JUMP_EQ (BINARY_NUMBER_EQUALS_TRUE);
+  JUMP (BINARY_NUMBER_EQUALS_FALSE);
+
+  BINARY_NUMBER_EQUALS_TRUE:
+  MOV(R0,1);
+  RETURN;
+  BINARY_NUMBER_EQUALS_FALSE:
+  MOV(R0,0);
+  RETURN;
+
+NUMBER_EQUALS: //variadic =
+  PUSH(FP);
+  MOV(FP,SP);
+
+  CMP(0,SCMNARGS);
+  JUMP_EQ(NUMBER_EQUALS_INCORRECT_ARGUMENT_COUNT);
+
+  MOV(R3, 1); // initial res is true
+  MOV(R2, 1); // i=1;
+  MOV(R0, SCMARG(0)); //get first arg
+  GET_INTEGER;
+
+  NUMBER_EQUALS_LOOP:
+  CMP(R2, SCMNARGS);
+  JUMP_EQ (NUMBER_EQUALS_FINISH);
+  MOV(R1,R0);
+  MOV(R0, SCMARG(R2));
+  GET_INTEGER;
+  PUSH(R0);
+  PUSH(R1);
+  CALL(BINARY_NUMBER_EQUALS);
+  AND(R3,R0);
+  POP(R1);
+  POP(R0);
+  INCR(R2);
+  JUMP (NUMBER_EQUALS_LOOP);
+
+
+  NUMBER_EQUALS_INCORRECT_ARGUMENT_COUNT:
+  printf("incorrect argument count in call (=)\n"); //TODO don't use printf
+  POP(FP);
+  JUMP(l_NOT_VALID_ARGUMENTS);
+
+  NUMBER_EQUALS_NOT_A_NUMBER_ERROR:
+  //TODO print the illegal argument
+  printf("Got a non number argument to =\n"); //TODO don't use printf
+  POP(FP);
+  JUMP(l_NOT_VALID_ARGUMENTS);
+
+  NUMBER_EQUALS_FINISH:
+  MAKE_BOOL(R3);
+  POP(FP);
+  RETURN;
+
+
+ZERO:
+  PUSH(FP);
+  MOV(FP,SP);
+  MOV(R0,SCMARG(0));
+  CMP(INDD(R0,1),IMM(0));
+  JUMP_EQ(PUT_ZERO);
+  MOV(R0,IMM(3));
+  JUMP(ZERO_EXIT);
+  PUT_ZERO:
+  MOV(R0,IMM(5));
+  ZERO_EXIT:
+  POP(FP);
+  RETURN;
+
+EQ:
+  PUSH(FP);
+  MOV(FP,SP);
+  PUSH(R1);
+  PUSH(R2);
+  MOV(R1,SCMARG(1));
+  MOV(R0,SCMARG(0));
+  CMP(IND(R0),IND(R1));
+  JUMP_NE(EQ_NOT_EQ);
+  CMP(IND(R0),T_INTEGER);
+  MOV(R2,R0);
+  CMP(IND(R0),T_CHAR);
+  OR(R2,R0);
+  CMP(IND(R0),T_FRACTION);
+  OR(R2,R0); 
+  CMP(IND(R0),T_SYMBOL);
+  OR(R0,R2);
+  JUMP_NE(EQ_BY_POINTER);
+  CMP(INDD(R0,1),INDD(R0,2));
+  JUMP_NE(EQ_NOT_EQ);
+  JUMP(EQ_IS_EQ);
+  EQ_BY_POINTER:
+  CMP(R0,R1);
+  JUMP_NE(EQ_NOT_EQ);
+  EQ_IS_EQ:
+  MOV(R0,IMM(5));
+  JUMP(EQ_EXIT);
+  EQ_NOT_EQ:
+  MOV(R0,IMM(3));
+  EQ_EXIT:
+  POP(R2);
+  POP(R1);
+  POP(FP);
+  RETURN;
+
+
+STRING_LENGTH:  
+  PUSH(FP);
+  MOV(FP, SP);
+  MOV(R0,SCMARG(0));
+  MOV(R0,INDD(R0,IMM(1)));
+  MAKE_INTEGER(R0);
+  POP(FP);
+  RETURN;
+
+
+STRING_REF:
+ PUSH(FP);
+  MOV(FP, SP);
+  PUSH(R1);
+  PUSH(R2);
+  MOV(R0, SCMARG(0));
+  ADD(R0, IMM(2));
+  MOV(R1,SCMARG(1));
+  MOV(R1,INDD(R1,1));
+  ADD(R0,R1);
+  MOV(R0,IND(R0));
+  MAKE_CHAR(R0);
+  POP(R2);
+  POP(R1);
+  POP(FP);
+  RETURN;
+
+  STRING_SET:
+ PUSH(FP);
+  MOV(FP, SP);
+  PUSH(R1);
+  PUSH(R2);
+  MOV(R0, SCMARG(0));
+  ADD(R0, IMM(2));
+  MOV(R1,SCMARG(1));
+  MOV(R1,INDD(R1,1));
+  ADD(R0,R1);
+  MOV(R2,SCMARG(2));
+  MOV(R2,INDD(R2,1));
+  MOV(IND(R0),R2);
+  MOV(R0,SCMARG(0));
+  POP(R2);
+  POP(R1);
+  POP(FP);
+  RETURN;
+
+MAKE_LIST:
+  PUSH(FP);
+  MOV(FP, SP);
+
+  // backup registers
+  PUSH(R1);
+  PUSH(R2);
+  PUSH(R3);
+  PUSH(R4);
+  PUSH(R5);
+
+  MOV(R0, SOB_NIL);
+  MOV(R1, FPARG(0)); //number of elements in the list
+
+  MAKE_LIST_LOOP:
+  CMP(R1, IMM(0));
+  JUMP_EQ(MAKE_LIST_CONTINUE);
+  PUSH(R0);
+  PUSH(FPARG(R1));
+  CALL(MAKE_SOB_PAIR);
+  DROP(2);
+  DECR(R1);
+  JUMP(MAKE_LIST_LOOP);
+
+  MAKE_LIST_CONTINUE:
+
+  // pop baced-up registers
+  POP(R5);
+  POP(R4);
+  POP(R3);
+  POP(R2);
+  POP(R1);
+
+  POP(FP);
+  RETURN;
+
+  APPLY:
+    PUSH(FP);
+    MOV(FP, SP);
+/*    PUSH(R1);
+  PUSH(R2);
+  PUSH(R3);
+  PUSH(R4);
+  PUSH(R5);*/
+    MOV(R0,SCMARG(1));
+    MOV(R4, IMM(0));
+
+    APPLY_PARAMAS_LOOP:
+    CMP(R0, SOB_NIL);
+    JUMP_EQ(APPLY_END_PARAMS);
+    PUSH(INDD(R0, IMM(1))); // get the car of the list
+    MOV(R0, INDD(R0, IMM(2))); // advance to the cdr of the list
+    INCR(R4); // count the list size
+    JUMP(APPLY_PARAMAS_LOOP);
+
+    APPLY_END_PARAMS:
+
+    MOV(R1, SP);
+    SUB(R1, R4);// now R1 stores the adress of the last element
+    MOV(R6,R1);
+    MOV(R5, SP);
+    DECR(R5);// now R5 stores the adress of the first element
+    APPLY_REVERSE_LOOP:
+    CMP(IMM(R1), IMM(R5)); // check if the pointers came across each other
+    JUMP_GE(APPLY_END_REVERSE);
+    MOV(R3, STACK(R1)); //temporasy variable for swap
+    MOV(STACK(R1), STACK(R5));
+    MOV(STACK(R5), R3);
+    INCR(R1);
+    DECR(R5);
+    JUMP(APPLY_REVERSE_LOOP);
+   
+    APPLY_END_REVERSE:
+
+    PUSH(R4); // number of args
+    MOV(R0, SCMARG(0));
+    PUSH(INDD(R0,1)); // push the env
+    MOV(R1,R6);
+    DECR(R6);
+
+    CMP(FPARG(-2),STACK(R6));
+    JUMP_NE(APPLY_NOT_TAIL_POSITION);
+
+    MOV(R1,FPARG(-1)); 
+        PUSH(R1);//push RETURN ADR" nl
+        
+        MOV(R3,FP);
+        SUB(R3,FPARG(-2));
+        ADD(R4,3);//number of total elemtns on stack" nl
+        MOV(R5,R4);//save for later "nl
+        MOV(R1,IMM(0));//counter"nl
+        MOV(R6,FP);
+  
+        MOV(R10,FP);
+        SUB(R10,SCMNARGS); //new framepointer"
+        SUB(R10,4);
+        MOV(R11,FPARG(-2));
+        MOV(FP,R10);
+
+        loop_label :
+        CMP(R1,R4); 
+        JUMP_EQ(loop_label_exit);
+        MOV(R7,FP);
+        ADD(R7,R1);
+        MOV(R8,R6);
+        ADD(R8,R1);
+        MOV(STACK(R7),STACK(R8));
+        INCR(R1);
+        JUMP(loop_label );
+        loop_label_exit :
+        MOV(SP,FP);
+        ADD(SP,R5);
+        MOV(FP,R11);
+
+        JUMPA((INDD(R0 , IMM(2)))); // jump to code label
+    APPLY_NOT_TAIL_POSITION:
+     CALLA(INDD(R0, 2));
+    
+     MOV(R1,STARG(0)); // drop args that are left on stack
+     ADD(R1,2);
+     DROP(IMM(R1));
+     APPLY_EXIT:
+    // POP(R5);
+    // POP(R4);
+    // POP(R3);
+    // POP(R2);
+    // POP(R1);
+    POP(FP);
+    RETURN;
