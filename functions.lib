@@ -1078,6 +1078,7 @@ MAKE_LIST:
         MOV(R10,FP);
         SUB(R10,SCMNARGS); //new framepointer"
         SUB(R10,4);
+        MOV(R11,FPARG(-2));
         MOV(FP,R10);
 
         loop_label :
@@ -1093,6 +1094,7 @@ MAKE_LIST:
         loop_label_exit :
         MOV(SP,FP);
         ADD(SP,R5);
+        MOV(FP,R11);
 
         JUMPA((INDD(R0 , IMM(2)))); // jump to code label
     APPLY_NOT_TAIL_POSITION:

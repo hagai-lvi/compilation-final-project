@@ -102,8 +102,7 @@
 	(let* ((params-code (gen-code-params (reverse params) const-table env-depth fvar-table))
 			(proc-code (code-gen operator const-table env-depth fvar-table)))
 			(string-append 
-				"printf(\"**************applic at line number at line number %d in file %s *****************************\\n\", __LINE__, __FILE__);" nl
-						"INFO;" nl
+						
 				params-code	
 				"PUSH(IMM("(number->string (length params))"));" nl
 				"//**************proc code**********" nl	proc-code "//**************proc code**********" nl
@@ -116,8 +115,6 @@
 				"MOV(R1,STARG(0));" nl
 				"ADD(R1,2);" nl
 				"DROP(IMM(R1)); //remove all" nl
-					"printf(\"**************applic-finish at line number at line number %d in file %s *****************************\\n\", __LINE__, __FILE__);" nl
-						"INFO;" nl
 			)))))
 
 (define code-gen-fvar (lambda (e const-table env-depth fvar-table)
@@ -485,7 +482,6 @@
 			"ADD(R5,IMM(1));" nl
 
 			"MOV(STACK(R5),IMM(" (number->string (+ (length vars) 1)) "));" nl
-	
 			"MOV(R0,SP); //number of elements to push" nl 
 			"MOV(R1,IMM(" (number->string (length vars) ) "));" nl
 			"SUB(R0,R1);" nl
@@ -604,7 +600,6 @@
 			; "MOV(R2,FP);// number of elements to push" nl 
 
 
-
 			"// TODO need to check arguments here" nl; TODO check arguments etc
 			nl
 			"// Here starts the code of the actual lambda " lambda-uid nl
@@ -637,10 +632,9 @@
 			(loop_label (^label-tp-applic-loop))
 			(loop_label_exit (^label-tp-applic-exit-loop )))
 			(string-append 
-					"printf(\"*******************tc-applic  at line number %d in file %s***************************************************\\n\" , __LINE__, __FILE__);" nl
-				"INFO;" nl
+
 				params-code	
-				
+
 				"PUSH(IMM("(number->string (length params))"));" nl
 				"//**************proc code**********" nl	proc-code "//**************proc code**********" nl
 
@@ -662,6 +656,7 @@
 				"MOV(R10,FP);" nl
 				"SUB(R10,SCMNARGS); //new framepointer"  nl
 				"SUB(R10,4);" nl
+				"MOV(R11,FPARG(-2));" nl
 				"MOV(FP,R10);" nl
 
 				loop_label ":" nl
@@ -677,8 +672,7 @@
 				loop_label_exit ":" nl
 				"MOV(SP,FP);" nl
 				"ADD(SP,R5);" nl
-					"printf(\"*******************tc-applic-finish  at line number %d in file %s***************************************************\\n\" , __LINE__, __FILE__);" nl
-				"INFO;" nl
+				"MOV(FP,R11);" nl
 				"JUMPA((INDD(R0 , IMM(2)))); // jump to code label" nl
 				
 			)))))
