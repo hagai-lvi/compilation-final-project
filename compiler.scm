@@ -694,8 +694,6 @@
 		 		 			(f rest `(,@current-list (,counter ,e (T_INTEGER ,e))) (+ counter 2)))
 		 		 		((char? e)
 		 		 			(f rest `(,@current-list (,counter ,e (T_CHAR ,(char->integer e)))) (+ counter 2)))
-		 		 		((symbol? e)
-		 		 			(f rest `(,@current-list (,counter ,e (T_SYMBOL ,e))) (+ counter 2)))
 		 		 		((and (boolean? e) e)
 		 		 			(f rest `(,@current-list (,counter ,e (T_BOOL 1))) (+ counter 2)))
 		 		 		((and (boolean? e) (not e))
@@ -710,6 +708,10 @@
 		 		 			(let ((locations (map (lambda(expr)(get-const-location expr current-list)) (vector->list  e )))
 		 		 					(vec-length (vector-length e)))
 		 		 				(f rest `(,@current-list (,counter ,e (T_VECTOR ,vec-length ,@locations))) (+ counter vec-length 2))))
+		 		 		((symbol? e)
+		 		 			(let (	(the-string (get-const-location (symbol->string e) current-list)))
+		 		 				(f rest `(,@current-list (,counter ,e (T_SYMBOL ,the-string))) (+ counter  2))))
+
 		 		 		(else (error 'make-const-table "Can't create symbol for ~s" `(,e) )))))))) ; TODO exception? error?
 	(lambda (exp)
 		(f (filter (lambda (x) (not (null? x))) exp) (get-initial-const-tbl) 7))))
@@ -740,7 +742,7 @@
                       (map foo
                            (vector->list e))) ,e))
        ((symbol? e)
-        `(,@(foo (symbol->string e))))
+        `(,@(foo (symbol->string e)) ,e) )
        )))
 
 (define const-list-getter 
