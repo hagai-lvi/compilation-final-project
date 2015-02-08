@@ -732,7 +732,7 @@
 		 		 			(let (	(the-string (get-const-location (symbol->string e) current-list)))
 		 		 				(f rest `(,@current-list (,counter ,e (T_SYMBOL ,the-string))) (+ counter  2))))
 
-		 		 		(else (error 'make-const-table "Can't create symbol for ~s" `(,e) )))))))) ; TODO exception? error?
+		 		 		(else (error 'make-const-table (format "Can't create symbol for ~s" e) )))))))) ; TODO exception? error?
 	(lambda (exp)
 		(f (filter (lambda (x) (not (null? x))) exp) (get-initial-const-tbl) 7))))
 
@@ -789,7 +789,7 @@
   (lambda(mems values value)
               (cond ((null? values)
 
-              	(error 'get-expression-of-variable "Can't find value for ~s" value))
+              	(error 'get-expression-of-variable (format "Can't find value for ~s" value)))
               	((equal? (car values) value)
               		(car mems))
               	(else (get-expression-of-variable (cdr mems)(cdr values) value)))))
