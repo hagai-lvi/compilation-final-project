@@ -1153,10 +1153,14 @@ CREATE_LINK_AND_ADD_TO_SYM_LIST:
   MOV(FP, SP);
   PUSH(R1);
 
-  CALL(CREATE_LINK); // create a link with the string in R1
+  CALL(CREATE_SYM_LINK); // create a link with the string in R1
   MOV(R1, R0);
   CALL(ADD_LINK_TO_SYM_LIST);
 
   POP(R1);
   POP(FP);
   RETURN;
+
+// Find a symbol specified by string pointer in R1 in the symbol list.
+// Return IMM(-1) if non found
+FIND_SYM_LOCATION:
