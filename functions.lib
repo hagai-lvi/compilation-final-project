@@ -1167,6 +1167,7 @@ ADD_LINK_TO_SYM_LIST:
 
 
 // Get string pointer in stack and add it to the end of the symbol's linked list
+// Return in R0 the adress of the new link
 CREATE_LINK_AND_ADD_TO_SYM_LIST:
   PUSH(FP);
   MOV(FP, SP);
@@ -1174,16 +1175,55 @@ CREATE_LINK_AND_ADD_TO_SYM_LIST:
   MOV(R1, FPARG(IMM(0)));
 
   CALL(CREATE_SYM_LINK); // create a link with the string in R1
+  PUSH(R0); // R0 contains the adress of the new link, back it up before call
   MOV(R1, R0);
   CALL(ADD_LINK_TO_SYM_LIST);
+  POP(R0); // R0 contains the adress of the new link, return it
 
   POP(R1);
   POP(FP);
   RETURN;
 
-// Find a symbol specified by string pointer in R1 in the symbol list.
-// Return IMM(-1) if non found
-FIND_SYM_LOCATION:
+STRING_TO_SYMBOL:
+  PUSH(FP);
+  MOV(FP,SP);
+  PUSH(R2);
+
+  MOV(R2, SYM_LIST_LOC);
+  CMP(IND(R2), IMM(0));
+  JUMP_NE(FIND_SYM_LOCATION_ITERARTE);
+  
+  // If the sym list is empty, add the argument string to the list
+  PUSH(FPARG(0));
+  CALL(CREATE_LINK_AND_ADD_TO_SYM_LIST);
+  DROP(IMM(1));
+
+  FIND_SYM_LOCATION_ITERARTE:
+  MOV(R2, IND(SYM_LIST_LOC)); // pointer to the first link
+
+  STRING_TO_SYMBOL_LOOP:
+  CMP(IND(R2), FPARG(IMM(0))); //compare pointers
+  JUMP_EQ(STRING_TO_SYMBOL_LINK_FOUND);
+  CMP(INDD(R2,1), IMM(0)); // check if this is the last link in the list 
+  JUMP_EQ(STRING_TO_SYMBOL_LINK_NOT_FOUND);
+  MOV(R2, INDD(R2, 1)); // get next link
+  JUMP(STRING_TO_SYMBOL_LOOP);
+
+  STRING_TO_SYMBOL_LINK_NOT_FOUND: // need to create the link
+  PUSH(FPARG(0));
+  CALL(CREATE_LINK_AND_ADD_TO_SYM_LIST);
+  DROP(IMM(1));
+  MOV(R2, R0); //pointer to the link
+
+  STRING_TO_SYMBOL_LINK_FOUND: // R2 contain the adress of the link, create a SOB_SYMBOL
+  PUSH(INDD(R2,1));
+  CALL(MAKE_SOB_SYMBOL);
+  DROP(1); 
+
+  POP(R2);
+  POP(FP);
+  RETURN;
+
 
 PRINT_SYM_LIST:
   PUSH(FP);
