@@ -1131,20 +1131,36 @@ ADD_LINK_TO_SYM_LIST:
   PUSH(FP);
   MOV(FP,SP);
   PUSH(R2);
+<<<<<<< HEAD
   MOV(R2, IND(SYM_LIST_LOC));
   CMP(R2,IMM(0));
   ADD_LINK_TO_LIST_LOOP:
   SHOW("",IND(R2));
   CMP(R2, IMM(0));
 
+=======
+
+  MOV(R2, SYM_LIST_LOC);
+  CMP(IND(R2), IMM(0));
+  JUMP_NE(ADD_LINK_TO_LIST_ITERARTE);
+  MOV(IND(R2), R1);
+  JUMP(ADD_LINK_TO_SYM_LIST_FINISH);
+
+  ADD_LINK_TO_LIST_ITERARTE:
+  MOV(R2,IND(R2)); // pointer to the first link
+
+  ADD_LINK_TO_LIST_LOOP:
+  CMP(INDD(R2,1), IMM(0));
+>>>>>>> 32ac01a40b4cf995629213bf3cbcc0d36ff033ff
   JUMP_EQ(ADD_LINK_TO_LIST_EXIT_LOOP); // found the last link
     SHOW("",INDD(R2,2));
   MOV(R2, INDD(R2, 1)); // get next link
   JUMP(ADD_LINK_TO_LIST_LOOP);
 
   ADD_LINK_TO_LIST_EXIT_LOOP:
-  MOV(IND(R2), R1);
+  MOV(INDD(R2,1), R1);
 
+  ADD_LINK_TO_SYM_LIST_FINISH:
   POP(R2);
   POP(FP);
   RETURN;
@@ -1168,6 +1184,95 @@ CREATE_LINK_AND_ADD_TO_SYM_LIST:
 // Find a symbol specified by string pointer in R1 in the symbol list.
 // Return IMM(-1) if non found
 FIND_SYM_LOCATION:
+
+PRINT_SYM_LIST:
+  PUSH(FP);
+  MOV(FP,SP);
+  PUSH(R2);
+
+  MOV(R2, IND(SYM_LIST_LOC));
+
+  PRINT_SYM_LIST_LOOP:
+  PUSH(IND(R2));
+  CALL(WRITE_SOB);
+  DROP(1);
+
+  CMP(INDD(R2,1), IMM(0));
+  JUMP_EQ(PRINT_SYM_LIST_EXIT_LOOP); // found the last link
+  MOV(R2, INDD(R2, 1)); // get next link
+  JUMP(PRINT_SYM_LIST_LOOP);
+
+  PRINT_SYM_LIST_EXIT_LOOP:
+  MOV(INDD(R2,1), R1);
+
+  POP(R2);
+  POP(FP);
+  RETURN;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 SYMBOL_TO_STRING:
