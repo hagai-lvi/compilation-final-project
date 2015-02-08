@@ -323,14 +323,14 @@
 			(value_table (apply append (map (lambda(x)(if (symbol? x) `(,(memory-getter (symbol->string x) const-table)) '())) symbol_table))))
 			(letrec ((f (lambda(new_table)
 				(if (null? new_table)
-					(string-append "MOV(IND(SYM_LIST_LOC),IMM(0));" nl 
+					(string-append 
 						"//************** end of symbol_table **************" nl)
 					(string-append "PUSH(IMM(" (number->string  (car new_table)) "));" nl
 						"CALL(CREATE_LINK_AND_ADD_TO_SYM_LIST);"  nl
 						"DROP(IMM(1));" nl
 						(f (cdr new_table)))))))
-
-				(f value_table)))))
+				(string-append "MOV(IND(SYM_LIST_LOC),IMM(0));" nl
+				(f value_table))))))
 
 (define ^label-lambda-copy-old-env (^^label "L_lambda_copy_old_env"))
 (define ^label-lambda-make-new-env (^^label "L_lambda_make_new_env"))
