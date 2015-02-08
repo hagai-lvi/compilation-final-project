@@ -1193,7 +1193,12 @@ STRING_TO_SYMBOL:
   MOV(R2, IND(SYM_LIST_LOC)); // pointer to the first link
 
   STRING_TO_SYMBOL_LOOP:
-  CMP(IND(R2), SCMARG(0)); //compare pointers
+  PUSH(IND(R2));
+  PUSH(SCMARG(0));
+  CALL(EQUAL_STRINGS);
+  DROP(IMM(2));
+  CMP(R0, IMM(1));
+  // CMP(IND(R2), SCMARG(0)); //compare pointers
   JUMP_EQ(STRING_TO_SYMBOL_LINK_FOUND);
   CMP(INDD(R2,1), IMM(0)); // check if this is the last link in the list 
   JUMP_EQ(STRING_TO_SYMBOL_LINK_NOT_FOUND);
@@ -1263,3 +1268,45 @@ SYMBOL_TO_STRING:
   DROP(1);
   POP(FP);
   RETURN;
+
+// get two string pointers and return true if theire values (not pointers) are equal
+// 0 means not equal, 1 means equal
+EQUAL_STRINGS:
+  PUSH(FP);
+  MOV(FP,SP);
+  PUSH(R1);
+  PUSH(R2);
+  PUSH(R3);
+  PUSH(R4);
+
+  MOV(R0, IMM(1));
+  MOV(R1, FPARG(0));
+  MOV(R2, FPARG(1));
+
+  CMP(INDD(R1,1),INDD(R2,1)); // compare lengthes
+  JUMP_NE(EQUAL_STRINGS_RETURN_FALSE);
+
+  MOV(R3, INDD(R1,1)); // strings length
+  MOV(R4, 2); // pointer to the first letter
+
+  EQUAL_STRINGS_LOOP:
+  CMP(R3, IMM(0));
+  JUMP_EQ(EQUAL_STRINGS_RETURN);
+  CMP(INDD(R1, R4), INDD(R2, R4)); //compare current char
+  JUMP_NE(EQUAL_STRINGS_RETURN_FALSE);
+  DECR(R3);
+  INCR(R4);
+  JUMP(EQUAL_STRINGS_LOOP);
+
+  EQUAL_STRINGS_RETURN_FALSE:
+  MOV(R0, IMM(0));
+
+  EQUAL_STRINGS_RETURN:
+
+  POP(R4);
+  POP(R3);
+  POP(R2);
+  POP(R1);
+  POP(FP);
+  RETURN;
+
