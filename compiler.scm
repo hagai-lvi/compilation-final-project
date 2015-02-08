@@ -306,6 +306,7 @@
 			(symbol_link_list  (make_symbol_link_list const-table fvar-table link_list_location ))
 		)
 		(begin 
+			(display (string-append "#define SYM_LIST_LOC " (number->string link_list_location) nl) output-file)
 			(display (create-imports-macros-begining)  output-file)
 			(display (copy-const-table-to-memory (flatten (map append (map caddr const-table)))  1)  output-file)
 			(display (copy-fvar-table-to-memory (map cadr fvars-map) fvar-start-pos) output-file)
@@ -327,8 +328,8 @@
 						"CALL(CREATE_LINK_AND_ADD_TO_SYM_LIST);"  nl
 						"DROP(IMM(1));" nl
 						(f (cdr new_table)))))))
-			(string-append "#define SYM_LIST_LOC " (number->string start-location) nl
-				(f value_table))))))
+
+				(f value_table)))))
 
 (define ^label-lambda-copy-old-env (^^label "L_lambda_copy_old_env"))
 (define ^label-lambda-make-new-env (^^label "L_lambda_make_new_env"))
