@@ -153,7 +153,8 @@
 		integer->char make-vector vector-length
 		vector-ref vector-set! string-length
 		string-set! string-ref set-car! set-cdr!
-			+ - * / > < =  apply remainder symbol->string))
+			+ - * / > < =  apply remainder
+		symbol->string string->symbol ))
 
 
 ; map between scheme fvar name to the compiler's fvar name
@@ -194,5 +195,6 @@
 	('=					"NUMBER_EQUALS")
 	('apply 			"APPLY")
 	('remainder 		"REMAINDER")
-	('symbol->string    "SYMBOL_TO_STRING")))
+	('symbol->string    "SYMBOL_TO_STRING")
+	('string->symbol	"STRING_TO_SYMBOL")))
 	
