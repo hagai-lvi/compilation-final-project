@@ -1111,3 +1111,52 @@ MAKE_LIST:
     // POP(R1);
     POP(FP);
     RETURN;
+
+// Get a string pointer in R1, and return a link with a pointer to that string in R0
+CREATE_SYM_LINK:
+  PUSH(FP);
+  MOV(FP,SP);
+  
+  PUSH(IMM(2)); //link size
+  CALL(MALLOC);
+  DROP(1);
+  MOV(IND(R0), R1); // mov the string to the link
+  MOV(INDD(R0, 1), IMM(0)); // null pointer
+
+  POP(FP);
+  RETURN;
+
+// Get a link in R1 and add it to the end of the symbol list
+ADD_LINK_TO_SYM_LIST:
+  PUSH(FP);
+  MOV(FP,SP);
+  PUSH(R2);
+
+  MOV(R2, SYM_LIST_LOC);
+  ADD_LINK_TO_LIST_LOOP:
+  CMP(IND(R2), IMM(0));
+  JUMP_EQ(ADD_LINK_TO_LIST_EXIT_LOOP); // found the last link
+  MOV(R2, INDD(R2, 1)); // get next link
+  JUMP(ADD_LINK_TO_LIST_LOOP);
+
+  ADD_LINK_TO_LIST_EXIT_LOOP:
+  MOV(IND(R2), R1);
+
+  POP(R2);
+  POP(FP);
+  RETURN;
+
+
+// Get string pointer in R1 and add it to the end of the symbol's linked list
+CREATE_LINK_AND_ADD_TO_SYM_LIST:
+  PUSH(FP);
+  MOV(FP, SP);
+  PUSH(R1);
+
+  CALL(CREATE_LINK); // create a link with the string in R1
+  MOV(R1, R0);
+  CALL(ADD_LINK_TO_SYM_LIST);
+
+  POP(R1);
+  POP(FP);
+  RETURN;
