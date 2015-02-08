@@ -322,10 +322,10 @@
 			(value_table (apply append (map (lambda(x)(if (symbol? x) `(,(memory-getter (symbol->string x) const-table)) '())) symbol_table))))
 			(letrec ((f (lambda(new_table)
 				(if (null? new_table)
-					(string-append "**************end of symbol_table **************" nl)
+					(string-append "//************** end of symbol_table **************" nl)
 					(string-append "PUSH(IMM(" (number->string  (car new_table)) "));" nl
-						"CALL(CREATE_LINK_AND_ADD_TO_SYM_LISTT);"  nl
-						"DROP(IMM(1);" nl
+						"CALL(CREATE_LINK_AND_ADD_TO_SYM_LIST);"  nl
+						"DROP(IMM(1));" nl
 						(f (cdr new_table)))))))
 			(string-append "#define SYM_LIST_LOC " (number->string start-location) nl
 				(f value_table))))))
