@@ -1112,6 +1112,7 @@ MAKE_LIST:
     POP(FP);
     RETURN;
 
+
 // Get a string pointer in R1, and return a link with a pointer to that string in R0
 CREATE_SYM_LINK:
   PUSH(FP);
@@ -1131,14 +1132,6 @@ ADD_LINK_TO_SYM_LIST:
   PUSH(FP);
   MOV(FP,SP);
   PUSH(R2);
-<<<<<<< HEAD
-  MOV(R2, IND(SYM_LIST_LOC));
-  CMP(R2,IMM(0));
-  ADD_LINK_TO_LIST_LOOP:
-  SHOW("",IND(R2));
-  CMP(R2, IMM(0));
-
-=======
 
   MOV(R2, SYM_LIST_LOC);
   CMP(IND(R2), IMM(0));
@@ -1151,9 +1144,7 @@ ADD_LINK_TO_SYM_LIST:
 
   ADD_LINK_TO_LIST_LOOP:
   CMP(INDD(R2,1), IMM(0));
->>>>>>> 32ac01a40b4cf995629213bf3cbcc0d36ff033ff
   JUMP_EQ(ADD_LINK_TO_LIST_EXIT_LOOP); // found the last link
-    SHOW("",INDD(R2,2));
   MOV(R2, INDD(R2, 1)); // get next link
   JUMP(ADD_LINK_TO_LIST_LOOP);
 
@@ -1194,7 +1185,7 @@ STRING_TO_SYMBOL:
   JUMP_NE(FIND_SYM_LOCATION_ITERARTE);
   
   // If the sym list is empty, add the argument string to the list
-  PUSH(FPARG(0));
+  PUSH(SCMARG(0));
   CALL(CREATE_LINK_AND_ADD_TO_SYM_LIST);
   DROP(IMM(1));
 
@@ -1202,7 +1193,7 @@ STRING_TO_SYMBOL:
   MOV(R2, IND(SYM_LIST_LOC)); // pointer to the first link
 
   STRING_TO_SYMBOL_LOOP:
-  CMP(IND(R2), FPARG(IMM(0))); //compare pointers
+  CMP(IND(R2), SCMARG(0)); //compare pointers
   JUMP_EQ(STRING_TO_SYMBOL_LINK_FOUND);
   CMP(INDD(R2,1), IMM(0)); // check if this is the last link in the list 
   JUMP_EQ(STRING_TO_SYMBOL_LINK_NOT_FOUND);
@@ -1210,19 +1201,20 @@ STRING_TO_SYMBOL:
   JUMP(STRING_TO_SYMBOL_LOOP);
 
   STRING_TO_SYMBOL_LINK_NOT_FOUND: // need to create the link
-  PUSH(FPARG(0));
+  PUSH(SCMARG(0));
   CALL(CREATE_LINK_AND_ADD_TO_SYM_LIST);
   DROP(IMM(1));
   MOV(R2, R0); //pointer to the link
 
   STRING_TO_SYMBOL_LINK_FOUND: // R2 contain the adress of the link, create a SOB_SYMBOL
-  PUSH(INDD(R2,1));
+  PUSH(IND(R2));
   CALL(MAKE_SOB_SYMBOL);
   DROP(1); 
 
   POP(R2);
   POP(FP);
   RETURN;
+
 
 
 PRINT_SYM_LIST:
