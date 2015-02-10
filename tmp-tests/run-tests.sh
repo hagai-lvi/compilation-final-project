@@ -21,11 +21,13 @@ bold=`tput bold`
 smul=`tput smul`
 normal=`tput sgr0`
 
+# import the rellevant files from the compiler dir
 mkdir arch
 cp -r ../arch/* arch/
 cp ../functions.lib .
 cp ../macros.h .
 
+# counters
 failed=0
 passed=0
 total=0
@@ -39,21 +41,25 @@ do
 		total=$[total+1]
 		echo "${bold}${smul}*** Testing $f... ***${normal}"
 
-		should_delete=false
+		should_delete=false # delete only if the script created files
+
 		# If outputfile doesn't exist
 		if ! [[ -e "petite-$f.out" ]]; then
 			$verbose && echo "Output file already exist, skipping running with petite"
 			cat pre.scm $f post.scm > "petite-$f" # create file to be run with petite
-			petite --script "petite-$f" > "petite-$f.out"
+			petite --script "petite-$f" > "petite-$f.out" # run in petite and save the output
 			should_delete=true
 		fi 
 
+		# compile with our compiler
 		pushd .. >> /dev/null
 		petite --script compile.scm "$dir/$f" "$dir/$f.c"
 		popd >> /dev/null
+
 		executable=$(echo "$f" | cut -d"." -f1)
 
 		$verbose && echo "Executing GCC"
+		# compile using GCC
 		gcc -o "$executable" "$f.c"
 
 		$verbose && echo "Running the executable"
@@ -62,6 +68,7 @@ do
 		$verbose && echo "Deleteing the executable and compiled file"
 		rm -rf "$executable" "$f.c"
 
+		# outputs of our compiler matches expected output
 		if cmp -s "petite-$f.out" "$f.out"; then
 		    # files are the same
 			printf ${green}
@@ -85,6 +92,7 @@ do
 
 		fi
 
+		# if we have created petite file and outputfile
 		if [[ "$should_delete" = true ]]; then
 			$verbose && echo "Deleting petite file and outfile"
 			rm -rf "petite-$f" "petite-$f.out"
