@@ -11,12 +11,7 @@ int main()
   START_MACHINE;
 
 ADD(IND(0),1000);
-//empty env
-PUSH(IMM(1));
-CALL(MALLOC);
-MOV(R12,R0)
-DROP(1);
-//***
+MOV(R12,IMM(31004));
 
 
     JUMP(CONTINUE);

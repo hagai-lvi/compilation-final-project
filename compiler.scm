@@ -120,7 +120,7 @@
 (define code-gen-fvar (lambda (e const-table env-depth fvar-table)
 	(with e 
 		(lambda(name op)
-			(string-append "MOV(R0,IND(" (number->string (memory-getter op fvar-table)) "));" nl)))))
+			(string-append "MOV(R0,IND(" (number->string (memory-getter op  fvar-table)) "));" nl)))))
 			; (cond
 			; 	((equal? op 'cons)(string-append "MAKE_CLOSURE(CONS);" nl))
 			; 	((equal? op 'car)(string-append "MAKE_CLOSURE(CAR);" nl))
@@ -195,7 +195,7 @@
 														(lambda(e)
 															(string-append
 																e nl
-																"CMP(R0, SOB_FALSE);" nl
+																"CMP(INDD(R0,1), IMM(0));" nl
 																"JUMP_NE(" label-or-exit ");" nl)) 
 														abl)))
 						(string-append
@@ -292,22 +292,25 @@
           ((not (pair? x)) (list x))
           (else (append (car x)
                         (flatten (cdr x))))))
-
+(define (delete-null-void-bool l)
+(filter (lambda(x)(not (or (null? x)(boolean? x)(void? x)))) l))
 (define (compile-scheme-file input output)
 	(let* (
 			(output-file (open-output-file output 'replace))
 			(input-file  (open-input-file input))
 			(input-text  (read-whole-file-by-token input-file))
-			(const-table  (make-const-table (reverse (remove-duplicates (reverse (flatten (get-constant-table input-text)))))))
+			(const-table  (make-const-table (delete-null-void-bool (reverse (remove-duplicates (reverse (flatten (get-constant-table input-text))))))))
 			(fvar-start-pos (+  (caar (reverse const-table )) (length (caddar (reverse const-table) ))))
 			(fvar-init-table  (make-initial-fvars-table fvar-start-pos))
-			(fvar-table (make-fvars-table (flatten (get-fvar-table input-text)) fvar-start-pos))
+			(fvar-table (make-fvars-table (remove-duplicates (flatten (get-fvar-table input-text))) fvar-start-pos))
 			(link_list_location( +  (caar (reverse fvar-table )) 1))
 			(symbol_link_list  (make_symbol_link_list const-table fvar-table link_list_location ))
 		)
 		(begin 
 			(display (string-append "#define SYM_LIST_LOC " (number->string link_list_location) nl) output-file)
 			(display (create-imports-macros-begining)  output-file)
+			(display (string-append "ADD(IND(0), " (number->string (+ 100 link_list_location)) ");"  nl)  output-file)
+		
 			(display (copy-const-table-to-memory (flatten (map append (map caddr const-table)))  1)  output-file)
 			(display (copy-fvar-table-to-memory (map cadr fvars-map) fvar-start-pos) output-file)
 			(display symbol_link_list output-file )
@@ -754,7 +757,7 @@
 (define foo
   (lambda (e)	
     (cond
-      ((or (number? e) (char? e)(string? e) (null? e))`(,e))
+      ((or (number? e) (char? e)(string? e) (null? e)(boolean? e))`(,e))
       ((pair? e)
        `( ,@(foo (car e)) ,@(foo (cdr e) ),e))
        ((vector? e)
