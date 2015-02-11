@@ -195,7 +195,7 @@
 														(lambda(e)
 															(string-append
 																e nl
-																"CMP(INDD(R0,1), IMM(0));" nl
+																"CMP(INDD(R0,1), SOB_BOOLEAN_FALSE);" nl
 																"JUMP_NE(" label-or-exit ");" nl)) 
 														abl)))
 						(string-append
@@ -791,7 +791,6 @@
 (define get-expression-of-variable
   (lambda(mems values value)
               (cond ((null? values)
-
               	(error 'get-expression-of-variable (format "Can't find value for ~s" value)))
               	((equal? (car values) value)
               		(car mems))
