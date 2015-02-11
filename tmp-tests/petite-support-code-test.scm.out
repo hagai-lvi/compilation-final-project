@@ -197,3 +197,9 @@ bla
 #<void>
 #<void>
 (720 . (fact-1 . (fact-2 . (fact-3 . (fact-1 . (fact-2 . (fact-3 . (fact-1 . ()))))))))
+#t
+#t
+#<void>
+#t
+#t
+#t
