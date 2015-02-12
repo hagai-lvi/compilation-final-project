@@ -102,7 +102,7 @@
 	(let* ((params-code (gen-code-params (reverse params) const-table env-depth fvar-table))
 			(proc-code (code-gen operator const-table env-depth fvar-table)))
 			(string-append 
-						
+				"PUSH(IMM(666));" nl		
 				params-code	
 				"PUSH(IMM("(number->string (length params))"));" nl
 				"//**************proc code**********" nl	proc-code "//**************proc code**********" nl
@@ -113,7 +113,7 @@
 	
 				"CALLA((INDD(R0 , IMM(2)))); // jump to code label" nl
 				"MOV(R1,STARG(0));" nl
-				"ADD(R1,2);" nl
+				"ADD(R1,3);" nl
 				"DROP(IMM(R1)); //remove all" nl
 			)))))
 
