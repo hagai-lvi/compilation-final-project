@@ -250,13 +250,18 @@
 ;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
 	(if (null? input-text)
 		(string-append "")
-		(string-append
-			(code-gen (test (car input-text)) const-table 0 fvar-table)
-			"PUSH(R0);" nl
-			"CALL(WRITE_SOB);" nl
-			"CALL(NEWLINE);" nl 
-			"//END OF FIRST INPUT********************************************" nl
-			(code-gen-text (cdr input-text) const-table fvar-table)))))
+			(let ((code (code-gen (test (car input-text)) const-table 0 fvar-table))
+				(final-code 
+					(if (and (pair? (car input-text))(tagged-with 'define (car input-text)))
+						nl
+					(string-append  
+						"PUSH(R0);" nl
+						"CALL(WRITE_SOB);" nl
+						"CALL(NEWLINE);" nl 
+						"//END OF FIRST INPUT********************************************" nl
+						))))
+			(string-append code final-code
+			(code-gen-text (cdr input-text) const-table fvar-table))))))
 
 
 (define get-constant-table (lambda(input-text)
@@ -286,6 +291,40 @@
 (copy-const-table-to-memory (cdr table) (+ index 1)))
 	))))
 
+(define inital-init '((define map
+  ((lambda (y) 
+     ((lambda (map1) 
+  ((lambda (maplist) 
+     (lambda (f . s) 
+       (maplist f s))) 
+   (y (lambda (maplist) 
+        (lambda (f s) 
+    (if (null? (car s)) '() 
+        (cons (apply f (map1 car s)) 
+        (maplist f (map1 cdr s))))))))) 
+      (y (lambda (map1) 
+     (lambda (f s) 
+       (if (null? s) '() 
+     (cons (f (car s)) 
+           (map1 f (cdr s))))))))) 
+   (lambda (f) 
+     ((lambda (x) 
+  (f (lambda (y z)
+       ((x x) y z))))
+      (lambda (x) 
+  (f (lambda (y z)
+       ((x x) y z))))))))
+
+       (define Ym
+  (lambda fs
+    (let ((ms (map
+    (lambda (fi)
+      (lambda ms
+        (apply fi (map (lambda (mi)
+             (lambda args
+               (apply (apply mi ms) args))) ms))))
+    fs)))
+      (apply (car ms) ms))))))
 
 (define (flatten x)
     (cond ((null? x) '())
@@ -298,7 +337,7 @@
 	(let* (
 			(output-file (open-output-file output 'replace))
 			(input-file  (open-input-file input))
-			(input-text  (read-whole-file-by-token input-file))
+			(input-text  `(,@inital-init ,@(read-whole-file-by-token input-file)))
 			(const-table  (make-const-table (delete-null-void-bool (reverse (remove-duplicates (reverse (flatten (get-constant-table input-text))))))))
 			(fvar-start-pos (+  (caar (reverse const-table )) (length (caddar (reverse const-table) ))))
 			(fvar-init-table  (make-initial-fvars-table fvar-start-pos))
