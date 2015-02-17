@@ -139,7 +139,7 @@ L_VECTOR_EXIT:
   JUMP(L_VECTOR_SET_LOOP);  
 L_VECTOR_SET_EXIT:
   MOV(IND(R2),SCMARG(2));
-  MOV(R0,SCMARG(0));
+  MOV(R0,IMM(1)); //VOID
   POP(R2);
   POP(R1);
   POP(FP);
@@ -526,6 +526,7 @@ SET_CAR:
   MOV(R1,SCMARG(1));
   MOV(R0,SCMARG(0));
   MOV(INDD(R0,1),R1);
+  MOV(R0,IMM(1)); //void
   POP(R1);
   POP(FP);
   RETURN;
@@ -539,6 +540,7 @@ SET_CDR:
   MOV(R1,SCMARG(1));
   MOV(R0,SCMARG(0));
   MOV(INDD(R0,2),R1);
+  MOV(R0,IMM(1)); //void
   POP(R1);
   POP(FP);
   RETURN;
@@ -974,7 +976,7 @@ STRING_REF:
   MOV(R2,SCMARG(2));
   MOV(R2,INDD(R2,1));
   MOV(IND(R0),R2);
-  MOV(R0,SCMARG(0));
+  MOV(R0,IMM(1)); //void
   POP(R2);
   POP(R1);
   POP(FP);
