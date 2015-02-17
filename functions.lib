@@ -19,7 +19,6 @@
   MOV(INDD(R0, 2), SCMARG(1));
   POP(FP);
   RETURN;
-//TODO ADD ARGUMENT CHECKING MACRO
 
 
 //add argument check
@@ -595,7 +594,6 @@ MINUS:
   CMP(0,SCMNARGS);
   JUMP_NE(MINUS_CONTINUE);
 
-  printf("Exception: incorrect argument count in call (-)\n" ); //TODO need to change the printf
   POP(FP);
   JUMP(l_NOT_VALID_ARGUMENTS);
 
@@ -666,7 +664,6 @@ DIV:
   CMP(0,SCMNARGS);
   JUMP_NE(DIV_CONTINUE);
 
-  printf("Exception: incorrect argument count in call (/)\n" ); //TODO need to change the printf
   POP(FP);
   JUMP(l_NOT_VALID_ARGUMENTS);
 
@@ -710,7 +707,6 @@ DIV:
   RETURN;
 
 DIV_BY_ZERO:
-  printf("Exception: division by zero" ); //TODO need to change the printf
   POP(FP);
   JUMP(l_NOT_VALID_ARGUMENTS);
 
@@ -756,13 +752,10 @@ BIGGER_THAN: // variadic >
 
 
   BIGGER_THAN_INCORRECT_ARGUMENT_COUNT:
-  printf("incorrect argument count in call (>)\n"); //TODO don't use printf
   POP(FP);
   JUMP(l_NOT_VALID_ARGUMENTS);
 
   BIGGER_THAN_NOT_A_NUMBER_ERROR:
-  //TODO print the illegal argument
-  printf("Got a non number argument to >\n"); //TODO don't use printf
   POP(FP);
   JUMP(l_NOT_VALID_ARGUMENTS);
 
@@ -813,13 +806,10 @@ LESS_THAN: // variadic <
 
 
   LESS_THAN_INCORRECT_ARGUMENT_COUNT:
-  printf("incorrect argument count in call (<)\n"); //TODO don't use printf
   POP(FP);
   JUMP(l_NOT_VALID_ARGUMENTS);
 
   LESS_THAN_NOT_A_NUMBER_ERROR:
-  //TODO print the illegal argument
-  printf("Got a non number argument to <\n"); //TODO don't use printf
   POP(FP);
   JUMP(l_NOT_VALID_ARGUMENTS);
 
@@ -870,13 +860,10 @@ NUMBER_EQUALS: //variadic =
 
 
   NUMBER_EQUALS_INCORRECT_ARGUMENT_COUNT:
-  printf("incorrect argument count in call (=)\n"); //TODO don't use printf
   POP(FP);
   JUMP(l_NOT_VALID_ARGUMENTS);
 
   NUMBER_EQUALS_NOT_A_NUMBER_ERROR:
-  //TODO print the illegal argument
-  printf("Got a non number argument to =\n"); //TODO don't use printf
   POP(FP);
   JUMP(l_NOT_VALID_ARGUMENTS);
 
