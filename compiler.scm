@@ -252,7 +252,13 @@
 		(string-append "")
 			(let ((code (code-gen (test (car input-text)) const-table 0 fvar-table))
 				(final-code 
-					(if (and (pair? (car input-text))(tagged-with 'define (car input-text)))
+					(if (and (pair? (car input-text))
+						(or (tagged-with 'define (car input-text))
+							(tagged-with 'set-car! (car input-text))
+							(tagged-with 'set-cdr! (car input-text))
+							(tagged-with 'vector-set! (car input-text))
+							(tagged-with 'string-set! (car input-text))
+						))
 						nl
 					(string-append  
 						"PUSH(R0);" nl
