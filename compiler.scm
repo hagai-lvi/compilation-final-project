@@ -367,7 +367,6 @@
 			label-code ": // the begining of the actual code of the lambda" nl
 			"PUSH(FP);" nl
 			"MOV(FP, SP);" nl
-			"// TODO need to check arguments here" nl; TODO check arguments etc
 			nl
 			"// Here starts the code of the actual lambda " lambda-uid nl
 			nl
@@ -474,9 +473,6 @@
 			"SUB(R0,R1);" nl
 			"MOV(R2,FP);// number of elements to push" nl 
 
-
-
-			"// TODO need to check arguments here" nl
 			nl
 			"// Here starts the code of the actual lambda " lambda-uid nl
 			nl
@@ -580,7 +576,6 @@
 			"ADD(R5,IMM(R2));" nl
 			"ADD(R5,IMM(1));" nl
 
-			"// TODO need to check arguments here" nl
 			nl
 			"// Here starts the code of the actual lambda " lambda-uid nl
 			nl
@@ -687,7 +682,7 @@
 		 		 			(let (	(the-string (get-const-location (symbol->string e) current-list)))
 		 		 				(f rest `(,@current-list (,counter ,e (T_SYMBOL ,the-string))) (+ counter  2))))
 
-		 		 		(else (error 'make-const-table (format "Can't create symbol for ~s" e) )))))))) ; TODO exception? error?
+		 		 		(else (error 'make-const-table (format "Can't create symbol for ~s" e) ))))))))
 	(lambda (exp)
 		(f (filter (lambda (x) (not (null? x))) exp) (get-initial-const-tbl) 7))))
 
