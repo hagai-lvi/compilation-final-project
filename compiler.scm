@@ -5,9 +5,6 @@
 (print-gensym #f)
 
 
-
-;**********************************;;;;;;;;;;;;;;;;;;;;;;;;
-
 (define ^^label
 	(lambda (name)
 		(let ((n 0))
@@ -57,18 +54,6 @@
 (define (code-gen-const e const-table env-depth fvar-table)
 	(with e (lambda (const exp)
 		(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl )
-	;(cond ((number? exp)(if (integer? exp)
-	;						(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl )
-	;						(string-append (string->chars (number->string exp) "MAKE_SOB_NUMBER") )))
-	;	  ((string? exp)	(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
-	;	  ((char? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
-	;	  ((boolean? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
-	;	  ((null? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
-	;	  ((symbol? exp)(string-append "MAKE_SYMBOL(" (symbol->string exp )");"  nl))
-	;	  ((list? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
-	;	  ((void? exp)(string-append "MOV(R0,("(number->string (memory-getter exp const-table))"));" nl ))
-	;	  ((vector? exp)
-	;	  (else exp))	
 	)))
 
 	
@@ -121,42 +106,6 @@
 	(with e 
 		(lambda(name op)
 			(string-append "MOV(R0,IND(" (number->string (memory-getter op  fvar-table)) "));" nl)))))
-			; (cond
-			; 	((equal? op 'cons)(string-append "MAKE_CLOSURE(CONS);" nl))
-			; 	((equal? op 'car)(string-append "MAKE_CLOSURE(CAR);" nl))
-			; 	((equal? op 'cdr)(string-append "MAKE_CLOSURE(CDR);" nl))
-			; 	((equal? op 'eq?)(string-append "MAKE_CLOSURE(EQ);" nl))
-			; 	((equal? op 'null?)(string-append "MAKE_CLOSURE(IS_NULL);" nl))	
-			; 	((equal? op 'boolean?)(string-append "MAKE_CLOSURE(IS_BOOL);" nl))	
-			; 	((equal? op 'integer?)(string-append "MAKE_CLOSURE(IS_INTEGER);" nl))
-			; 	((equal? op 'number?)(string-append "MAKE_CLOSURE(IS_NUMBER);" nl))
-			; 	((equal? op 'string?)(string-append "MAKE_CLOSURE(IS_STRING);" nl))
-			; 	((equal? op 'char?)(string-append "MAKE_CLOSURE(IS_CHAR);" nl))
-			; 	((equal? op 'vector?)(string-append "MAKE_CLOSURE(IS_VECTOR);" nl))
-			; 	((equal? op 'symbol?)(string-append "MAKE_CLOSURE(IS_SYMBOL);" nl))	
-			; 	((equal? op 'zero?)(string-append "MAKE_CLOSURE(ZERO);" nl))	
-			; 	((equal? op 'pair?)(string-append "MAKE_CLOSURE(IS_PAIR);" nl))	
-			; 	((equal? op 'procedure?)(string-append "MAKE_CLOSURE(IS_PROC);" nl))	
-			; 	((equal? op 'make-string)(string-append "MAKE_CLOSURE(MAKE_STRING);" nl))
-			; 	((equal? op 'char->integer)(string-append "MAKE_CLOSURE(CHAR_TO_INTEGER);" nl))
-			; 	((equal? op 'integer->char)(string-append "MAKE_CLOSURE(INTEGER_TO_CHAR);" nl))
-			; 	((equal? op 'make-vector)(string-append "MAKE_CLOSURE(MAKE_VECTOR);" nl))
-			; 	((equal? op 'vector-length)(string-append "MAKE_CLOSURE(VECTOR_LENGTH);" nl))
-			; 	((equal? op 'vector-ref)(string-append "MAKE_CLOSURE(VECTOR_REF);" nl))
-			; 	((equal? op 'vector-set!)(string-append "MAKE_CLOSURE(VECTOR_SET);" nl))
-			; 	((equal? op 'string-length)(string-append "MAKE_CLOSURE(STRING_LENGTH);" nl))
-			; 	((equal? op 'string-set!)(string-append "MAKE_CLOSURE(STRING_SET);" nl))
-			; 	((equal? op 'string-ref)(string-append "MAKE_CLOSURE(STRING_REF);" nl))					
-			; 	((equal? op 'set-car!)(string-append "MAKE_CLOSURE(SET_CAR);" nl))
-			; 	((equal? op 'set-cdr!)(string-append "MAKE_CLOSURE(SET_CDR);" nl))
-			; 	((equal? op '+ )(string-append "MAKE_CLOSURE(PLUS);" nl))
-			; 	((equal? op '- )(string-append "MAKE_CLOSURE(MINUS);" nl))
-			; 	((equal? op '* )(string-append "MAKE_CLOSURE(MULTIPLY);" nl))
-			; 	((equal? op '/ )(string-append "MAKE_CLOSURE(DIV);" nl))
-			; 	((equal? op '> )(string-append "MAKE_CLOSURE(BIGGER_THAN);" nl))
-			; 	((equal? op '< )(string-append "MAKE_CLOSURE(LESS_THAN);" nl))
-			; 	((equal? op '= )(string-append "MAKE_CLOSURE(NUMBER_EQUALS);" nl))
-			;(else (error 'code-gen-fvar "Can't generate code for ~s" `(,name ,op))))))))
 
 
 (define code-gen-seq (lambda (e const-table env-depth fvar-table)
@@ -203,11 +152,7 @@
 							(apply string-append code-for-all-but-last)
 							code-for-last
 							label-or-exit ":" nl
-
-							)
-
-
-					)))))
+							))))))
 
 
 (define call-with-input-file
@@ -217,28 +162,6 @@
         (close-input-port p)
 				(list->string v)))))
 
-;(define call-with-output-file
-;  (lambda (port proc list-to-print)
-;      (proc port list-to-print)))
-
-
-;(define write-whole-file
-;  (lambda (p l)
-;  	(let* ((element (if (null? l)l(car l))))
-;  		(if null? element)
-;  			(newline p)
-;   		 (begin 
-;   		 	(if	(equal? element #\newline)
-;   				(newline p)
-;   				(display element p))
-;   			(write-whole-file (p (cdr l)))))))
-
-
-
-
-
-
-
 (define (create-imports-macros-begining)
 (call-with-input-file "resources/pre_code.c" read-whole-file-by-char)) 
 
@@ -247,7 +170,6 @@
 (call-with-input-file "resources/post_code.c" read-whole-file-by-char)) 
 
 (define code-gen-text (lambda(input-text const-table fvar-table)
-;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
 	(if (null? input-text)
 		(string-append "")
 			(let ((code (code-gen (test (car input-text)) const-table 0 fvar-table))
@@ -271,7 +193,6 @@
 
 
 (define get-constant-table (lambda(input-text)
-;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
 	(if (null? input-text)
 		'()
 		(cons 	(topo-sort (car input-text))
@@ -279,7 +200,6 @@
 
 
 (define get-fvar-table (lambda(input-text)
-;(display (string-append  "MOV(R0,IMM(2));" nl "SHOW(\"READ IN STRING AT ADDRESS \", R0);" nl) output-file))
 	(if (null? input-text)
 		'()
 		(cons 	(fvar-list-getter (test (car input-text)))
@@ -549,7 +469,6 @@
 			"ADD(R5,IMM(" (number->string (length vars)) "));" nl
 			"ADD(R5,IMM(1));" nl
 
-		;	"MOV(STACK(R5),IMM(" (number->string (+ (length vars) 1)) "));" nl
 			"MOV(R0,SP); //number of elements to push" nl 
 			"MOV(R1,IMM(" (number->string (length vars) ) "));" nl
 			"SUB(R0,R1);" nl
@@ -557,7 +476,7 @@
 
 
 
-			"// TODO need to check arguments here" nl; TODO check arguments etc
+			"// TODO need to check arguments here" nl
 			nl
 			"// Here starts the code of the actual lambda " lambda-uid nl
 			nl
@@ -661,14 +580,7 @@
 			"ADD(R5,IMM(R2));" nl
 			"ADD(R5,IMM(1));" nl
 
-		;	"MOV(STACK(R5),IMM(1));// number of arguments on the stack - 1 for lambda variadic" nl
-			; "MOV(R0,SP); //number of elements to push" nl 
-			; "MOV(R1,IMM(" (number->string (length vars) ) "));" nl
-			; "SUB(R0,R1);" nl
-			; "MOV(R2,FP);// number of elements to push" nl 
-
-
-			"// TODO need to check arguments here" nl; TODO check arguments etc
+			"// TODO need to check arguments here" nl
 			nl
 			"// Here starts the code of the actual lambda " lambda-uid nl
 			nl
@@ -745,11 +657,6 @@
 				
 			)))))
 
-;get a topological sorted list of constants and creates the constants table that looks like this:
-; (	(1 	#<void> (t_void))
-;	(2 	()		(t_nil))
-;	...
-; )
 (define make-const-table
 	(letrec ((f
 	(lambda(exp current-list counter)
