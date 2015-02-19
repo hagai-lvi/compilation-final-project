@@ -258,10 +258,19 @@
           (else (append (car x)
                         (flatten (cdr x))))))
 (define (delete-null-void-bool l)
-(filter (lambda(x)(not (or (null? x)(boolean? x)(void? x)))) l))
+	(filter (lambda(x)(not (or (null? x)(boolean? x)(void? x)))) l))
+
+
+(define make-file-string
+
+	(lambda(filename)
+		(string-append "FILE_NAME=" (list->string (reverse (cddr (reverse (string->list filename))))) nl
+	"$(FILE_NAME): $(FILE_NAME).c" nl
+	"\t"  "gcc -o $(FILE_NAME) $(FILE_NAME).c")))
 (define (compile-scheme-file input output)
 	(let* (
 			(output-file (open-output-file output 'replace))
+			(make-file (open-output-file "makefile" 'replace))
 			(input-file  (open-input-file input))
 			(input-text  `(,@inital-init ,@(read-whole-file-by-token input-file)))
 			(const-table  (make-const-table (delete-null-void-bool (reverse (remove-duplicates (reverse (flatten (get-constant-table input-text))))))))
@@ -271,7 +280,8 @@
 			(link_list_location( +  (caar (reverse fvar-table )) 1))
 			(symbol_link_list  (make_symbol_link_list const-table fvar-table link_list_location ))
 		)
-		(begin 
+		(begin
+			(display (make-file-string output) make-file) 
 			(display (string-append "#define SYM_LIST_LOC " (number->string link_list_location) nl) output-file)
 			(display (create-imports-macros-begining)  output-file)
 			(display (string-append "ADD(IND(0), " (number->string (+ 100 link_list_location)) ");"  nl)  output-file)
